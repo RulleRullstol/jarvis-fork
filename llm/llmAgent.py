@@ -23,8 +23,8 @@ class llmAgent:
             self.client = OpenAI(api_key=getenv('OPENAI_API_KEY'))
             
             
-        elif self.remote:   # Create ollama client if llm set to ollama & remote
-            self.client = Client(host=getValue('ollama_settings', 'host')) # Create client if set to run remote
+#        elif self.remote:   # Create ollama client if llm set to ollama & remote
+#            self.client = Client(host=getValue('ollama_settings', 'host')) # Create client if set to run remote
 
     
     def query(self, userPrompt: str):
@@ -36,8 +36,8 @@ class llmAgent:
 
         if self.returnJson: # response format
             resFormat = {"type": "json_object"}
-#        else:
-#            resFormat = NotGiven()
+        else:
+            resFormat = NotGiven()
 
         if self.llm == 'openai': # Run if openai configured
             response = self.client.chat.completions.create(
