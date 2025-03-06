@@ -1,42 +1,54 @@
+from tools.toolDefinitions import getTools, functions
+from llm.llmAgent import llmAgent
+from llm import systemMsgs
+from json import loads
+from protocols.settingsTracking import updateCurrentSettings
+import threading
 
-import sys
-import os
+def getUsrInput(usrInput: list): # Greppa user input. arg är referens till input variabel som kollas i loopen
+    while True:
+        request = input('User: ')
+        usrInput.append(request)
 
-# Includes path to parent directiry
-parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if parent_dir not in sys.path:
-    sys.path.insert(0, parent_dir)
+def parseToolCalls(funcs):  # Köra funktioner från llm
+    for call in funcs:
+        callsToUpdate.append(call.function) # Append to functioncall list for current settings logic
+        try:
+            func = functions[call.function.name]
+            args = loads(call.function.arguments)
+            funcThread = threading.Thread(target=func, kwargs= args, daemon=True)
+            funcThread.start()
+        except Exception as e:
+            print(f'Error calling function: {e}')
 
-from llm import jarvis as j
-from tools.lightMain import setLights
 
-jarvis = j.Jarvis()
+# Setup response agent
+talkAgent = llmAgent(systemMsgs.openai_fast_msg, False)
+toolAgent = llmAgent(systemMsgs.openai_lights_msg, True, getTools())
+
+# Setup for keeping track of current settings and tools to call
+callsToUpdate = [] # List of tool calls to be passed to potentially slow updateThread
+updateThread = any # the update thread
+toolResponse = None # Tool responses from llm
+
+# Setup for getting user input async
+usrInput = [] # Måste vara lista för att språket är dåligt
+usrInputThread = threading.Thread(target = getUsrInput, args = [usrInput], daemon=True)
+usrInputThread.start()
 
 while True:
-    _input = input("You: ")
+    if len(usrInput) != 0:
+        chatResponse = talkAgent.query(usrInput[0]) # chat response
+        print('Jarvis: ', chatResponse)
+        toolResponse = toolAgent.query(usrInput[0])
+        usrInput.clear()
 
-    if _input.lower() == "exit":
-        break
-    
-    chat_response = jarvis.fast_response(_input) 
-    print("Jarvis: ", chat_response["message"])
+    if toolResponse != None:
+        parseToolCalls(toolResponse) # Run tool calls
+        callsToUpdate.append(toolResponse) # Add tool calls to list
+        toolResponse = None
 
-    light_response = []
-    speaker_response = []
-    
-    if chat_response["needs_commands"] != None:
-        for action in chat_response["needs_commands"]:
-            if action.lower() == "light":
-                light_response = jarvis.lights_response()    
-            elif action.lower() == "speaker":
-                speaker_response = jarvis.speaker_response()  
-    
-    if len(light_response) != 0:
-        setLights(light_response)
-
-        
-#
-#   if len(speaker_response) != 0:
-#       speakerMain.main(speaker_response)
-    
-    
+    if len(callsToUpdate) > 0: # Update current settings. Run if calls is not empty
+        if (isinstance(updateThread, threading.Thread) and not updateThread.is_alive) or not isinstance(updateThread, threading.Thread): # Is previous updateThread done? Start new.
+            updateThread = threading.Thread(target = updateCurrentSettings, args = [callsToUpdate.pop(0)], daemon=True)
+            updateThread.start()
