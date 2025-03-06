@@ -1,4 +1,4 @@
-from ollama import chat, Client
+#from ollama import chat, Client
 from os import getenv
 from configHandler import getValue, mergeDicts
 from json import loads
@@ -36,8 +36,8 @@ class llmAgent:
 
         if self.returnJson: # response format
             resFormat = {"type": "json_object"}
-        else:
-            resFormat = NotGiven()
+#        else:
+#            resFormat = NotGiven()
 
         if self.llm == 'openai': # Run if openai configured
             response = self.client.chat.completions.create(
@@ -81,23 +81,23 @@ class llmAgent:
                     print('llm response not convertable to JSON, returning str: ', e)
             return response['message'] # Return message content as str
         
-        else: # Run if ollama set to local
-            response = chat(
-                model = self.model,
-                messages = msg,
-                tools = self.tools)
-            
-            self.addHistory(response['role': 'you', 'content': response['message']['content']])
-            if self.returnCall:
-                try:
-                    json = loads(response['message']) # Return message content as JSON
-                    return json
-                except Exception as e:
-                    print('llm response not convertable to JSON, returning str: ', e)
-            return response['message'] # Return message content as str
+#        else: # Run if ollama set to local
+#            response = chat(
+#                model = self.model,
+#                messages = msg,
+#                tools = self.tools)
+#            
+#            self.addHistory(response['role': 'you', 'content': response['message']['content']])
+#            if self.returnCall:
+#                try:
+#                    json = loads(response['message']) # Return message content as JSON
+#                    return json
+#                except Exception as e:
+#                    print('llm response not convertable to JSON, returning str: ', e)
+#            return response['message'] # Return message content as str
         
 
     def addHistory(self, msg: dict):
-        self.history.insert(0, msg)
+        self.history.insert(-1, msg)
         if len(self.history) > self.memory:
-            self.history.pop(-1)
+            self.history.pop()

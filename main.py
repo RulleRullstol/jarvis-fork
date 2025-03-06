@@ -43,7 +43,7 @@ while True:
             print('Jarvis: ', chatResponse)
             tools = toolAgent.query(_input)
             if tools != None:
-                toolResponse.append()
+                toolResponse.append(tools)
         usrInput.clear()
 
     if len(toolResponse) != 0:
