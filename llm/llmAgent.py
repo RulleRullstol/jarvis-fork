@@ -1,4 +1,4 @@
-#from ollama import chat, Client
+from ollama import chat, Client
 from os import getenv
 from configHandler import getValue, mergeDicts
 from json import loads
@@ -23,8 +23,8 @@ class llmAgent:
             self.client = OpenAI(api_key=getenv('OPENAI_API_KEY'))
             
             
-#        elif self.remote:   # Create ollama client if llm set to ollama & remote
-#            self.client = Client(host=getValue('ollama_settings', 'host')) # Create client if set to run remote
+        elif self.remote:   # Create ollama client if llm set to ollama & remote
+            self.client = Client(host=getValue('ollama_settings', 'host')) # Create client if set to run remote
 
     
     def query(self, userPrompt: str):
@@ -81,20 +81,20 @@ class llmAgent:
                     print('llm response not convertable to JSON, returning str: ', e)
             return response['message'] # Return message content as str
         
-#        else: # Run if ollama set to local
-#            response = chat(
-#                model = self.model,
-#                messages = msg,
-#                tools = self.tools)
-#            
-#            self.addHistory(response['role': 'you', 'content': response['message']['content']])
-#            if self.returnCall:
-#                try:
-#                    json = loads(response['message']) # Return message content as JSON
-#                    return json
-#                except Exception as e:
-#                    print('llm response not convertable to JSON, returning str: ', e)
-#            return response['message'] # Return message content as str
+        else: # Run if ollama set to local
+            response = chat(
+                model = self.model,
+                messages = msg,
+                tools = self.tools)
+            
+            self.addHistory(response['role': 'you', 'content': response['message']['content']])
+            if self.returnCall:
+                try:
+                    json = loads(response['message']) # Return message content as JSON
+                    return json
+                except Exception as e:
+                    print('llm response not convertable to JSON, returning str: ', e)
+            return response['message'] # Return message content as str
         
 
     def addHistory(self, msg: dict):
