@@ -98,6 +98,6 @@ class llmAgent:
         
 
     def addHistory(self, msg: dict):
-        self.history.insert(-1, msg)
+        self.history.insert(0, msg)
         if len(self.history) > self.memory:
-            self.history.pop()
+            self.history.pop(-1)
