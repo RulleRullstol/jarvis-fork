@@ -45,7 +45,6 @@ while True:
 
     if toolResponse != None:
         parseToolCalls(toolResponse) # Run tool calls
-        callsToUpdate.append(toolResponse) # Add tool calls to list
         toolResponse = None
 
     if len(callsToUpdate) > 0: # Update current settings. Run if calls is not empty
