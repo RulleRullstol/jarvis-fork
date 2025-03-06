@@ -29,7 +29,7 @@ toolAgent = llmAgent(systemMsgs.openai_lights_msg, True, getTools())
 # Setup for keeping track of current settings and tools to call
 callsToUpdate = [] # List of tool calls to be passed to potentially slow updateThread
 updateThread = any # the update thread
-toolResponse = None # Tool responses from llm
+toolResponse = [] # Tool responses from llm
 
 # Setup for getting user input async
 usrInput = [] # Måste vara lista för att språket är dåligt
@@ -38,14 +38,18 @@ usrInputThread.start()
 
 while True:
     if len(usrInput) != 0:
-        chatResponse = talkAgent.query(usrInput[0]) # chat response
-        print('Jarvis: ', chatResponse)
-        toolResponse = toolAgent.query(usrInput[0])
+        for _input in usrInput:
+            chatResponse = talkAgent.query(_input) # chat response
+            print('Jarvis: ', chatResponse)
+            tools = toolAgent.query(_input)
+            if tools != None:
+                toolResponse.append()
         usrInput.clear()
 
-    if toolResponse != None:
-        parseToolCalls(toolResponse) # Run tool calls
-        toolResponse = None
+    if len(toolResponse) != 0:
+        for call in toolResponse:
+            parseToolCalls(call) # Run tool calls
+        toolResponse = []
 
     if len(callsToUpdate) > 0: # Update current settings. Run if calls is not empty
         if (isinstance(updateThread, threading.Thread) and not updateThread.is_alive) or not isinstance(updateThread, threading.Thread): # Is previous updateThread done? Start new.
