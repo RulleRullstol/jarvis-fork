@@ -13,7 +13,7 @@ def getTools():
         "type": "function",
         "function": {
             "name": "setLights",
-            "description": "Sets the properties of lights.",
+            "description": "Sets the properties of lights. Do not set properties that are not asked",
             "parameters": {
                 "type": "object",
                     "properties": {
