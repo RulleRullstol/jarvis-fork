@@ -1,4 +1,4 @@
-{"name": "setLights", "arguments": {"id": "all", "state": true, "color": [255, 0, 0], "brightness": 255}}
-{"name": "setLights", "arguments": {"id": "hall", "state": true, "color": [255, 0, 0], "brightness": 255}}
+{"name": "setLights", "arguments": {"id": "all", "state": true, "color": [0, 0, 255], "brightness": 255}}
+{"name": "setLights", "arguments": {"id": "hall", "state": false, "color": [0, 0, 0], "brightness": 0}}
 {"name": "setLights", "arguments": {"id": "sovrum", "state": true, "color": [255, 0, 0], "brightness": 255}}
 {"name": "setLights", "arguments": {"id": "taklampa", "state": true, "color": [255, 0, 0], "brightness": 255}}
