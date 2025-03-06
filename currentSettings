@@ -1,1 +1,1 @@
-{"name": "setLights", "arguments": {"id": "all", "state": true, "color": [0, 0, 0], "brightness": 255}}
+{"name": "setLights", "arguments": {"id": "hall", "state": true, "color": [0, 0, 0], "brightness": 255}}

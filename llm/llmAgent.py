@@ -32,7 +32,7 @@ class llmAgent:
         self.addHistory(usrMsg) # Append usrMsg to history 
         msg = tuple(self.history) # Build message mutable variablers värden är en referens till ett värde. därav måste msg göras till en tuple, sen list för att msg ska peka på ett annat värde, därefter kan man appenda sysmsg
         msg = list(msg)
-        msg.append(self.systemMsg)
+        msg.insert(0, self.systemMsg)
 
         if self.returnJson: # response format
             resFormat = {"type": "json_object"}
