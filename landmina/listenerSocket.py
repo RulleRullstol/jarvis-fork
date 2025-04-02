@@ -27,6 +27,8 @@ while setup:
 def connectToESP(ip: str, port: int):
     sock.bind(ip, port)
     id = port - 10000
+    message = "OK"
+    sock.sendto(message.encode('utf-8'), ip)
     
     loop = True
     while loop:
