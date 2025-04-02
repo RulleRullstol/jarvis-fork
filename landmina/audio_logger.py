@@ -11,7 +11,7 @@ SAMPLE_RATE = 44100  # Match the ESP32 sample rate
 CHANNELS = 1  # Mono audio
 BITS_PER_SAMPLE = 16  # 16-bit audio
 CHUNK_SIZE = 256  # Number of 16-bit samples per chunk (this is 64 samples)
-GAIN = 1.4 # Volume gain (increase this value to boost the volume)
+GAIN = 1 # Volume gain (increase this value to boost the volume)
 
 def increase_volume(samples, gain):
     """Increase the volume by multiplying the samples by a gain factor."""
@@ -46,10 +46,10 @@ def read_audio_from_serial():
                 samples = struct.unpack('<' + 'h' * (len(data) // 2), data)
 
                 # Increase the volume by applying the gain factor
-                amplified_samples = increase_volume(samples, GAIN)
+                # amplified_samples = increase_volume(samples, GAIN)
 
                 # Write the amplified audio samples (packed as 16-bit signed integers) to the WAV file
-                wav_file.writeframes(struct.pack('<' + 'h' * len(amplified_samples), *amplified_samples))
+                wav_file.writeframes(struct.pack('<' + 'h' * len(samples), *samples))
             else:
                 # Wait until enough data is available
                 print(f"Waiting for {CHUNK_SIZE * 2} bytes, currently {ser.in_waiting} bytes available.")

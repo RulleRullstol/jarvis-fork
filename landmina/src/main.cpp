@@ -2,8 +2,11 @@
 // Include I2S driver
 #include <Arduino.h>
 #include <driver/i2s.h>
+// Include Wifi
+#include <WiFi.h>
+#include <WiFiUdp.h>
 
-// Connections to INMP441 I2S microphone
+// Connection pins ti INMP441 on ESP32
 #define I2S_WS 25
 #define I2S_SD 33
 #define I2S_SCK 32
@@ -14,6 +17,13 @@
 // Define input buffer length
 #define bufferLen 256
 int16_t sBuffer[bufferLen];
+
+const char* ssid = "TN_wifi_D737B5";
+const char* password = "LDMAEJJWDU";
+
+WiFiUDP udp;
+const char* remoteIP = "192.168.10.100"; // IP of Raspberry Pi
+const int remotePort = 10000; // UDP port to send to
  
 void i2s_install() {
   // Set up I2S Processor configuration
@@ -49,7 +59,14 @@ void setup() {
   // Set up Serial Monitor
   Serial.begin(921600);
   Serial.println(" ");
- 
+  
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi...");
+  }
+  Serial.println("Connected to WiFi");
+
   delay(1000);
  
   // Set up I2S
