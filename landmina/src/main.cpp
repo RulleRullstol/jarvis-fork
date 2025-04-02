@@ -88,7 +88,18 @@ void loop() {
   i2s_read(I2S_PORT, &sBuffer, bufferLen, &bytesIn, portMAX_DELAY);
  
   // Read I2S data buffer
-  if (bytesIn > 0) {
-    Serial.write((uint8_t*)sBuffer, bytesIn);
+  uint8_t audioData[bufferLen * 2];  // Each 16-bit sample will take 2 bytes
+
+// Loop through each sample in sBuffer and convert to bytes
+  for (size_t i = 0; i < bufferLen; i++) {
+    // sBuffer[i] is a 16-bit sample, so break it into 2 bytes
+    audioData[i * 2] = (uint8_t)(sBuffer[i] & 0xFF);        // Low byte
+    audioData[i * 2 + 1] = (uint8_t)((sBuffer[i] >> 8) & 0xFF);  // High byte
   }
+  
+  udp.beginPacket(remoteIP, remotePort);
+  udp.write(audioData, sizeof(audioData));
+  udp.endPacket();
+
+  delay(50);
 }
