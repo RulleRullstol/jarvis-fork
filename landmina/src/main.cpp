@@ -1,8 +1,7 @@
 
-// Include I2S driver
+// Include I2S driver & WIFI
 #include <Arduino.h>
 #include <driver/i2s.h>
-// Include Wifi
 #include <WiFi.h>
 #include <WiFiUdp.h>
 
@@ -18,13 +17,48 @@
 #define bufferLen 256
 int16_t sBuffer[bufferLen];
 
+// WIFI settings
 const char* ssid = "TN_wifi_D737B5";
 const char* password = "LDMAEJJWDU";
 
-WiFiUDP udp;
-const char* remoteIP = "192.168.10.100"; // IP of Raspberry Pi
-const int remotePort = 10000; // UDP port to send to
- 
+// UDP settings
+const int remotePort = 10000;
+const int broadcastPort = 10000;	// Port för broadcast, skickar denna 
+const String ackMsg = "OK";			// Meddelande från pi
+
+String msg = "Hej hej :) Jag är ESP_1 10000"; // Meddelande, unik för varje ESP, 10000 är port som data ska skicar över
+uint8_t remoteIP; // Pi IP
+
+
+//const char* remoteIP = "192.168.10.100"; // IP of Raspberry Pi
+
+void broadcast(WiFiUDP udp) {
+  char buffer[255];
+  int senderIp;
+  String rcvdMsg;
+
+  while(true) {
+	udp.beginPacket(WiFi.broadcastIP(), broadcastPort);
+	udp.write((uint8_t*)msg.c_str(), strlen(msg.c_str()));
+	Serial.print("Sending packet: " + msg + " To: " + WiFi.broadcastIP() + ":" + broadcastPort);
+	udp.endPacket();
+	udp.begin(broadcastPort);
+
+    int packetSize = udp.parsePacket();
+    int readBytes = udp.read(buffer, sizeof(buffer) -1);
+    if (readBytes > 0) {
+      buffer[readBytes] = '\0'; // Konstig null-termination
+	  remoteIP = udp.remoteIP();
+	}
+	rcvdMsg = String(buffer);
+	Serial.print("Message recieved:" + rcvdMsg);
+	if(rcvdMsg == ackMsg) {
+		delay(2000);
+		return;
+	}
+  }
+}
+
 void i2s_install() {
   // Set up I2S Processor configuration
   const i2s_config_t i2s_config = {
@@ -38,10 +72,10 @@ void i2s_install() {
     .dma_buf_len = bufferLen,
     .use_apll = false
   };
- 
+  
   i2s_driver_install(I2S_PORT, &i2s_config, 0, NULL);
 }
- 
+
 void i2s_setpin() {
   // Set I2S pin configuration
   const i2s_pin_config_t pin_config = {
@@ -50,12 +84,12 @@ void i2s_setpin() {
     .data_out_num = -1,
     .data_in_num = I2S_SD
   };
- 
+  
   i2s_set_pin(I2S_PORT, &pin_config);
 }
- 
+WiFiUDP udp;
 void setup() {
- 
+  
   // Set up Serial Monitor
   Serial.begin(921600);
   Serial.println(" ");
@@ -66,20 +100,22 @@ void setup() {
     Serial.println("Connecting to WiFi...");
   }
   Serial.println("Connected to WiFi");
-
+  
   delay(1000);
- 
+  
   // Set up I2S
   i2s_install();
   i2s_setpin();
   	i2s_start(I2S_PORT);
- 
- 
+  
+  // Init UDP & broadcast & get pi
+  broadcast(udp);
+  
   	delay(500);
 }
- 
+
 void loop() {
- 
+  
   	// False print statements to "lock range" on serial plotter display
   	// Change rangelimit value to adjust "sensitivity"
  
