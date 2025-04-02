@@ -1,4 +1,5 @@
 import configparser
+from typing import Literal
 '''Diskombobulatorn. Den diskombobulerar.'''
 
 def getConf():
@@ -8,7 +9,8 @@ def getConf():
 
 def getESPCount():
     conf = getConf()
-    return conf['esp_general']['count']
+    count = conf['esp_general']['count']
+    return int(count)
 
 
 def getLights():
