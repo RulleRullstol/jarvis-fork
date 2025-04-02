@@ -9,12 +9,23 @@ Skapa en Mail åt Jarvis /K ----------------------------------------------------
 Skriv en pdf för lights /K ------------------------------------------------------------------------------------------------------------------ Klar /K
 getUserInput() körs på separat tråd. Låter program göra annat medan den väntar på input. /S ------------------------------------------------- Klar /S
 Skriva om /sonos så att den anvädner sig av config.ini /S
+Skapa funktionalitet för att koppla Sotify till Jarvis. /K
 Skapa funtioner så att jarvis kan ändra i config.ini /K
 Ge jarvis förmågan att skapa fler protokoll. /K
-Ge Jarvis möjlighet att maila /K
+Ge Jarvis möjlighet att maila /K ------------------------------------------------------------------------------------------------------------ Klar /K
 Ge Jarvis möjlighet att skapa en timer /K
+Ge Jarvis en TODO list för dig /K
+Ge jarvis möjlighet att spela in ljud i lägenheten. /K
+Konfigurera dammsugare till Jarvis /S
 
 
 Skapa protokoll för fördiga ljus och musik inställningar. /K
-    - Spara aktuella inställningar för konfigurerade grunkor /S - Klar /S
-    - Köra (möjligtvis) långsam protocol kod på annan tråd /S - Klar /S
+    - Spara aktuella inställningar för konfigurerade grunkor /S
+    - Köra (möjligtvis) långsam protocol kod på annan tråd /S ------------------------------------------------------------------------------- Klar /S
+
+Fixa output från Jarvis till Högtalare /K
+
+3D printa landminor /K
+
+Göra klart Jarvis /SK
+

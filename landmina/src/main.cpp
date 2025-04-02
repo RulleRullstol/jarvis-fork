@@ -106,36 +106,36 @@ void setup() {
   // Set up I2S
   i2s_install();
   i2s_setpin();
-  i2s_start(I2S_PORT);
+  	i2s_start(I2S_PORT);
   
   // Init UDP & broadcast & get pi
   broadcast(udp);
   
-  delay(500);
+  	delay(500);
 }
 
 void loop() {
   
-  // False print statements to "lock range" on serial plotter display
-  // Change rangelimit value to adjust "sensitivity"
+  	// False print statements to "lock range" on serial plotter display
+  	// Change rangelimit value to adjust "sensitivity"
  
-  // Get I2S data and place in data buffer
-  size_t bytesIn = 0;
-  i2s_read(I2S_PORT, &sBuffer, bufferLen, &bytesIn, portMAX_DELAY);
+  	// Get I2S data and place in data buffer
+  	size_t bytesIn = 0;
+  	i2s_read(I2S_PORT, &sBuffer, bufferLen, &bytesIn, portMAX_DELAY);
  
-  // Read I2S data buffer
-  uint8_t audioData[bufferLen * 2];  // Each 16-bit sample will take 2 bytes
+  	// Read I2S data buffer
+  	uint8_t audioData[bufferLen * 2];  // Each 16-bit sample will take 2 bytes
 
 // Loop through each sample in sBuffer and convert to bytes
-  for (size_t i = 0; i < bufferLen; i++) {
-    // sBuffer[i] is a 16-bit sample, so break it into 2 bytes
-    audioData[i * 2] = (uint8_t)(sBuffer[i] & 0xFF);        // Low byte
-    audioData[i * 2 + 1] = (uint8_t)((sBuffer[i] >> 8) & 0xFF);  // High byte
-  }
-  
-  udp.beginPacket(remoteIP, remotePort);
-  udp.write(audioData, sizeof(audioData));
-  udp.endPacket();
+  	for (size_t i = 0; i < bufferLen; i++) {
+    	// sBuffer[i] is a 16-bit sample, so break it into 2 bytes
+    	audioData[i * 2] = (uint8_t)(sBuffer[i] & 0xFF);        // Low byte
+    	audioData[i * 2 + 1] = (uint8_t)((sBuffer[i] >> 8) & 0xFF);  // High byte
+ 	 }
 
-  delay(50);
+  	udp.beginPacket(remoteIP, remotePort);
+  	udp.write(audioData, sizeof(audioData));
+  	udp.endPacket();
+
+ 	 delay(50);
 }

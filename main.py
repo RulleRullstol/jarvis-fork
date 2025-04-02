@@ -1,4 +1,4 @@
-from tools.toolDefinitions import getTools, functions
+from llm.toolDefinitions import getTools, functions
 from llm.llmAgent import llmAgent
 from llm import systemMsgs
 from json import loads

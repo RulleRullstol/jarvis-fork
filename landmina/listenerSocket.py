@@ -1,12 +1,38 @@
-import socket
 
-UDP_IP = "192.168.10.136"
-UDP_PORT = 10000
+import socket
+import threading
+from ..configHandler import getESPCount
+
+BROADCAST_IP = "255.255.255.255"
+BROADCAST_PORT = 9999
+
+ESP_LIST = []
+EXPECTED_ESP = getESPCount()
 
 sock = socket.socket(socket.AF_INET, # Internet
                      socket.SOCK_DGRAM) # UDP
-sock.bind((UDP_IP, UDP_PORT))
+sock.bind((BROADCAST_IP, BROADCAST_PORT))
 
-while True:
+setup = True
+while setup:
     data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
-    print("received message: %s" % data)
+    if "Hej hej :) Jag är" in data:
+        data = data[-5:]
+        ESP_LIST.append((int)(data, addr))
+
+    if len(ESP_LIST) == EXPECTED_ESP:
+        setup = False
+        sock.close()
+
+def connectToESP(ip: str, port: int):
+    sock.bind(ip, port)
+    id = port - 10000
+    
+    loop = True
+    while loop:
+        data, addr = sock.recvfrom(1024)
+        print("ESP",id,":   ", data)
+
+for esp in ESP_LIST:
+    thread = threading.Thread(target=setup, args=(esp[1], esp[0]), daemon=True)
+    thread.start()
