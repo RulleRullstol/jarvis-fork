@@ -40,12 +40,11 @@ void broadcast(WiFiUDP& udp) {
 		udp.beginPacket(WiFi.broadcastIP(), broadcastPort);
 		udp.write((uint8_t*)msg.c_str(), msg.length()); // Send the broadcast message
 		//Serial.print("Sending packet: " + msg + " To: " + WiFi.broadcastIP().toString() + ":" + broadcastPort);
-		delay(10);
+		delay(500);
 		udp.endPacket();
 		udp.begin(broadcastPort);
-
-		int packetSize = 1;
-		packetSize = udp.parsePacket();
+		delay(500); // Wait
+		int packetSize = udp.parsePacket();
 		Serial.println("packetSize__: " + (char)packetSize);
 		if (packetSize) {
 			int readBytes = udp.read(buffer, sizeof(buffer) - 1);
