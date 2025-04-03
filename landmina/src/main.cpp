@@ -16,10 +16,10 @@
 int16_t sBuffer[bufferLen];
 
 // WIFI settings
-const char* ssid = "NG24";
-const char* password = "123asdqwe";
-//const char* ssid = "TN_wifi_D737B5";
-//const char* password = "LDMAEJJWDU";
+//const char* ssid = "NG24";
+//const char* password = "123asdqwe";
+const char* ssid = "TN_wifi_D737B5_EXT";
+const char* password = "LDMAEJJWDU";
 
 // UDP settings
 const int remotePort = 10000;
@@ -146,6 +146,6 @@ void loop() {
   // Send the audio data over UDP
   udp.beginPacket(remoteIP, remotePort); // Use the IP address of the Raspberry Pi
   udp.write(audioData, sizeof(audioData)); // Send the byte array
-  delay(5); // 
+  delay(10); // 
   udp.endPacket(); // End the packet
 }
