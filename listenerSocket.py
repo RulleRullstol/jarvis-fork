@@ -3,7 +3,7 @@ import threading
 import ipaddress
 from configHandler import getESPCount, getBroadcastIp
 import struct
-
+ 
 BROADCAST_PORT = 9999
 
 ESP_LIST = []
