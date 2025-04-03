@@ -16,10 +16,10 @@
 int16_t sBuffer[bufferLen];
 
 // WIFI settings
-//const char* ssid = "NG24";
-//const char* password = "123asdqwe";
-const char* ssid = "TN_wifi_D737B5";
-const char* password = "LDMAEJJWDU";
+const char* ssid = "NG24";
+const char* password = "123asdqwe";
+//const char* ssid = "TN_wifi_D737B5";
+//const char* password = "LDMAEJJWDU";
 
 // UDP settings
 const int remotePort = 10000;
@@ -36,13 +36,15 @@ void broadcast(WiFiUDP& udp) {
     String rcvdMsg;
 
     Serial.println("Broadcasting to IP: " + WiFi.broadcastIP().toString());
-
+	udp.begin(broadcastPort);
+	delay(50);
     while (true) {
 		Serial.println("Sending UDP broadcast...");
 		udp.beginPacket(WiFi.broadcastIP(), broadcastPort);
         udp.write((uint8_t*)msg.c_str(), msg.length());
 		delay(1);
         udp.endPacket();
+		udp.begin(broadcastPort);
         delay(500);  // Give time for response
 
         int packetSize = udp.parsePacket(); // Greppa packet
@@ -61,6 +63,7 @@ void broadcast(WiFiUDP& udp) {
             if (rcvdMsg == ackMsg) {
                 Serial.println("Acknowledgment received!");
                 delay(2000);
+				udp.stop();
                 return;
             }
         } else {
