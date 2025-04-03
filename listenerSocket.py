@@ -1,9 +1,9 @@
 import socket
 import threading
-from configHandler import getESPCount
+import ipaddress
+from configHandler import getESPCount, getBroadcastIp
 import struct
 
-BROADCAST_IP = "0.0.0.0"  # This is for sending broadcasts, not binding
 BROADCAST_PORT = 9999
 
 ESP_LIST = []
@@ -36,25 +36,31 @@ def setupESP():
             setup = False
             sock.close()
 
+
 def get_broadcast_ip():
     """
-    Fetches general broadcast ip for handshake.
+    Fetches the broadcast IP address by modifying the local machine's IP.
     """
     hostname = socket.gethostname()
     
-    # Get the subnet mask and broadcast address
+    if (getBroadcastIp() != 'NULL'):
+        return getBroadcastIp()
+    # Get the local IP address of the machine
     for iface in socket.getaddrinfo(hostname, None):
         if iface[0] == socket.AF_INET:
-            addr = iface[4][0]
+            local_ip = iface[4][0]
             try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                s.connect((addr, 0))
-                broadcast_ip = s.getsockname()[0].rsplit('.', 1)[0] + ".255"
-                s.close()
+                # Split the local IP into its parts
+                ip_parts = local_ip.split('.')  # Assuming local_ip is like '192.168.10.x'
+                
+                # Modify the last octet to '255' for the broadcast address
+                ip_parts[-1] = '255'
+                broadcast_ip = '.'.join(ip_parts)  # Join the parts back into a string
+                
                 return broadcast_ip
-            except:
-                pass
-    return "255.255.255.255"
+            except Exception as e:
+                pass  # Handle any errors, e.g., if the IP format is unexpected
+    return "255.255.255.255"  # Fallback if we can't determine the broadcast IP
 
 def connectToESP(ip: str, port: int):
     """
@@ -67,10 +73,11 @@ def connectToESP(ip: str, port: int):
 
     id = port - 10000  # Calculate ESP ID based on the port
     message = "OK ESP_" + str(id)
-    print("1")
-    sock.sendto(message.encode('utf-8'), (get_broadcast_ip(), BROADCAST_PORT))
+    while True:
+        sock.sendto(message.encode('utf-8'), (get_broadcast_ip(), BROADCAST_PORT))
+        print("2")
 
-    print("2")
+    
     loop = True
     while loop:
         print("fuck")
@@ -79,15 +86,15 @@ def connectToESP(ip: str, port: int):
 
     sock.close()
 
+
+########################## Start Connection ##########################
+setupESP()
+
 # Start threads for each ESP device
 for esp in ESP_LIST:
     print(f"Connecting to ESP {esp[0]-10000} at {esp[1][0]}")
     thread = threading.Thread(target=connectToESP, args=(esp[1][0], esp[0]), daemon=True)
     thread.start()
-
-
-########################## Start Connection ##########################
-setupESP()
 
 while True:
     pass  # Keep the main thread alive so that threads can run

@@ -12,6 +12,9 @@ def getESPCount():
     count = conf['esp_general']['count']
     return int(count)
 
+def getBroadcastIp():
+    conf = getConf()
+    return conf['esp_general']['broadcast_ip']
 
 def getLights():
     '''Returns all light settings as a list of dicts'''

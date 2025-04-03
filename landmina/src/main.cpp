@@ -16,10 +16,10 @@
 int16_t sBuffer[bufferLen];
 
 // WIFI settings
-const char* ssid = "NG24";
-const char* password = "123asdqwe";
 //const char* ssid = "NG24";
 //const char* password = "123asdqwe";
+const char* ssid = "TN_wifi_D737B5";
+const char* password = "LDMAEJJWDU";
 
 // UDP settings
 const int remotePort = 10000;
