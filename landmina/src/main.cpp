@@ -18,8 +18,8 @@ int16_t sBuffer[bufferLen];
 // WIFI settings
 const char* ssid = "NG24";
 const char* password = "123asdqwe";
-//const char* ssid = "NG24";
-//const char* password = "123asdqwe";
+//const char* ssid = "TN_wifi_D737B5";
+//const char* password = "LDMAEJJWDU";
 
 // UDP settings
 const int remotePort = 10000;
@@ -32,35 +32,41 @@ IPAddress remoteIP; // Pi's IP address
 WiFiUDP udp;
 
 void broadcast(WiFiUDP& udp) {
-	char buffer[255];
-	String rcvdMsg;
+    char buffer[255];
+    String rcvdMsg;
 
-	// Loop until Pi responds
-	while (true) {
+    Serial.println("Broadcasting to IP: " + WiFi.broadcastIP().toString());
+
+    while (true) {
+		Serial.println("Sending UDP broadcast...");
 		udp.beginPacket(WiFi.broadcastIP(), broadcastPort);
-		udp.write((uint8_t*)msg.c_str(), msg.length()); // Send the broadcast message
-		//Serial.print("Sending packet: " + msg + " To: " + WiFi.broadcastIP().toString() + ":" + broadcastPort);
-		delay(500);
-		udp.endPacket();
-		udp.begin(broadcastPort);
-		delay(500); // Wait
-		int packetSize = udp.parsePacket();
-		Serial.println("packetSize__: " + (char)packetSize);
-		if (packetSize) {
-			int readBytes = udp.read(buffer, sizeof(buffer) - 1);
-			if (readBytes > 0) {
-				buffer[readBytes] = '\0'; // Null-terminate the string
-				rcvdMsg = String(buffer);
-				Serial.print(rcvdMsg);
-			}
+        udp.write((uint8_t*)msg.c_str(), msg.length());
+		delay(1);
+        udp.endPacket();
+        delay(500);  // Give time for response
 
-			Serial.print("Message received: " + rcvdMsg);
-			if (rcvdMsg == ackMsg) {
-				delay(2000);
-				return; // Exit broadcast loop once acknowledgment is received
-			}
-		}
-	}
+        int packetSize = udp.parsePacket(); // Greppa packet
+        Serial.printf("Packet Size Received: %d\n", packetSize);
+
+        if (packetSize) {
+            int readBytes = udp.read(buffer, sizeof(buffer) - 1);
+            if (readBytes > 0) {
+                buffer[readBytes] = '\0';
+                rcvdMsg = String(buffer);
+                rcvdMsg.trim();  // Ensure proper comparison
+            }
+
+            Serial.println("Received message: " + rcvdMsg);
+
+            if (rcvdMsg == ackMsg) {
+                Serial.println("Acknowledgment received!");
+                delay(2000);
+                return;
+            }
+        } else {
+            Serial.println("No response yet...");
+        }
+    }
 }
 
 void i2s_install() {
