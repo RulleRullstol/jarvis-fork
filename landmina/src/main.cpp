@@ -61,8 +61,9 @@ void broadcast(WiFiUDP& udp) {
             Serial.println("Received message: " + rcvdMsg);
 
             if (rcvdMsg == ackMsg) {
+				remoteIP = udp.remoteIP();
                 Serial.println("Acknowledgment received!");
-                delay(2000);
+                delay(500);
 				udp.stop();
                 return;
             }
@@ -123,7 +124,9 @@ void setup() {
 
   // Init UDP & broadcast to get Pi IP address
   broadcast(udp);
+  udp.begin(remotePort); // Data port
   delay(500); // Wait before starting audio transmission
+  Serial.println("Sending data to: " + remoteIP.toString() + ":" + remotePort);
 }
 
 void loop() {
@@ -143,7 +146,6 @@ void loop() {
   // Send the audio data over UDP
   udp.beginPacket(remoteIP, remotePort); // Use the IP address of the Raspberry Pi
   udp.write(audioData, sizeof(audioData)); // Send the byte array
+  delay(5); // 
   udp.endPacket(); // End the packet
-
-  delay(50); // Adjust delay for data transmission rate
 }
