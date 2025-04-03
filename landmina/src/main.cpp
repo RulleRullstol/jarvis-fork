@@ -24,9 +24,9 @@ const char* password = "123asdqwe";
 // UDP settings
 const int remotePort = 10000;
 const int broadcastPort = 9999; // Broadcast port
-const String ackMsg = "OK"; // Acknowledgment message from Pi
+const String ackMsg = "OK ESP_0"; // Acknowledgment message from Pi
 
-String msg = "Hej hej :) ESP_1 10000"; // Unique message for each ESP, 10000 is the port for data
+String msg = "Hej hej :) ESP_0 10000"; // Unique message for each ESP, 10000 is the port for data
 IPAddress remoteIP; // Pi's IP address
 
 WiFiUDP udp;
@@ -44,9 +44,9 @@ void broadcast(WiFiUDP& udp) {
 		udp.endPacket();
 		udp.begin(broadcastPort);
 
-		int packetSize = 0;
+		int packetSize = 1;
 		packetSize = udp.parsePacket();
-		Serial.println("packetSize: " + packetSize);
+		Serial.println("packetSize__: " + (char)packetSize);
 		if (packetSize) {
 			int readBytes = udp.read(buffer, sizeof(buffer) - 1);
 			if (readBytes > 0) {

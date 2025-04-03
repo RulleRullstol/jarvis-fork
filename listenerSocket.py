@@ -1,8 +1,9 @@
 import socket
 import threading
 from configHandler import getESPCount
+import struct
 
-BROADCAST_IP = "255.255.255.255"  # This is for sending broadcasts, not binding
+BROADCAST_IP = "0.0.0.0"  # This is for sending broadcasts, not binding
 BROADCAST_PORT = 9999
 
 ESP_LIST = []
@@ -29,6 +30,24 @@ while setup:
         setup = False
         sock.close()
 
+def get_broadcast_ip():
+    hostname = socket.gethostname()
+    local_ip = socket.gethostbyname(hostname)
+    
+    # Get the subnet mask and broadcast address
+    for iface in socket.getaddrinfo(hostname, None):
+        if iface[0] == socket.AF_INET:
+            addr = iface[4][0]
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                s.connect((addr, 0))
+                broadcast_ip = s.getsockname()[0].rsplit('.', 1)[0] + ".255"
+                s.close()
+                return broadcast_ip
+            except:
+                pass
+    return "255.255.255.255"
+
 def connectToESP(ip: str, port: int):
     # Create a new socket in each thread for communication with the ESP
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # New UDP socket for each thread
@@ -36,11 +55,11 @@ def connectToESP(ip: str, port: int):
     #sock.bind(('192.168.1.77', port))  # Bind to a specific port for communication with the ESP
 
     id = port - 10000  # Calculate ESP ID based on the port
-    message = "OK"
-    
+    message = "OK ESP_" + str(id)
     print("1")
     # Send "OK" message to ESP to acknowledge
-    sock.sendto(message.encode('utf-8'), (ip, port))
+    #sock.sendto(message.encode('utf-8'), (BROADCAST_IP, BROADCAST_PORT))
+    sock.sendto(message.encode('utf-8'), (get_broadcast_ip(), BROADCAST_PORT))
 
     print("2")
     loop = True
@@ -60,3 +79,4 @@ for esp in ESP_LIST:
 
 while True:
     pass  # Keep the main thread alive so that threads can run
+
