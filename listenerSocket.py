@@ -33,7 +33,7 @@ def connectToESP(ip: str, port: int):
     # Create a new socket in each thread for communication with the ESP
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # New UDP socket for each thread
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)  # Allow broadcasting
-    sock.bind(('0.0.0.0', port))  # Bind to a specific port for communication with the ESP
+    #sock.bind(('192.168.1.77', port))  # Bind to a specific port for communication with the ESP
 
     id = port - 10000  # Calculate ESP ID based on the port
     message = "OK"

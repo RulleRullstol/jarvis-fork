@@ -16,8 +16,10 @@
 int16_t sBuffer[bufferLen];
 
 // WIFI settings
-const char* ssid = "TN_wifi_D737B5";
-const char* password = "LDMAEJJWDU";
+const char* ssid = "NG24";
+const char* password = "123asdqwe";
+//const char* ssid = "NG24";
+//const char* password = "123asdqwe";
 
 // UDP settings
 const int remotePort = 10000;
@@ -38,11 +40,13 @@ void broadcast(WiFiUDP& udp) {
 		udp.beginPacket(WiFi.broadcastIP(), broadcastPort);
 		udp.write((uint8_t*)msg.c_str(), msg.length()); // Send the broadcast message
 		//Serial.print("Sending packet: " + msg + " To: " + WiFi.broadcastIP().toString() + ":" + broadcastPort);
-		delay(500);
+		delay(10);
 		udp.endPacket();
 		udp.begin(broadcastPort);
 
-		int packetSize = udp.parsePacket();
+		int packetSize = 0;
+		packetSize = udp.parsePacket();
+		Serial.println("packetSize: " + packetSize);
 		if (packetSize) {
 			int readBytes = udp.read(buffer, sizeof(buffer) - 1);
 			if (readBytes > 0) {
