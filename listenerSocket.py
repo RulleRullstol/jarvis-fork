@@ -1,13 +1,23 @@
 import socket
 import threading
-import ipaddress
-from configHandler import getESPCount, getBroadcastIp
+import time
+import wave
 import struct
+import json
+from vosk import Model, KaldiRecognizer
+from configHandler import getESPCount, getBroadcastIp
+
  
 BROADCAST_PORT = 9999
 
 ESP_LIST = []
 EXPECTED_ESP = getESPCount()
+
+OUTPUT_WAV = "recorded_audio.wav"
+SAMPLE_RATE = 44100
+CHANNELS = 1
+BITS_PER_SAMPLE = 16
+CHUNK_SIZE = 256
 
 # Create a UDP socket for listening to broadcasts
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP socket
@@ -16,13 +26,14 @@ sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)  # Allow broadcasting
 # Bind to all interfaces (0.0.0.0) or a specific local IP address
 sock.bind(('0.0.0.0', BROADCAST_PORT))  # Listen on all available interfaces
 
-
 def setupESP():
     """
     Searches for all expected ESP for first connection.
     """
     setup = True
     while setup:
+        print(f"Searching for ESP's. {len(ESP_LIST)} of {EXPECTED_ESP} found")
+        time.sleep(1)
         data, addr = sock.recvfrom(1024)
         strdata = data.decode('utf-8')
         
@@ -35,6 +46,7 @@ def setupESP():
         if len(ESP_LIST) == EXPECTED_ESP:
             setup = False
             sock.close()
+    print("All ESP's have been found")
 
 
 def get_broadcast_ip():
@@ -73,21 +85,48 @@ def connectToESP(ip: str, port: int):
 
     id = port - 10000  # Calculate ESP ID based on the port
     message = "OK ESP_" + str(id)
-    while True:
+    for i in range(20):
         sock.sendto(message.encode('utf-8'), (get_broadcast_ip(), BROADCAST_PORT))
-        print("2")
-
+        print(f"Returning digital handshake ({i*5}%)")
+    print("Returning digital handshake 100%\n")
+    
+    local_ip = socket.gethostbyname(socket.gethostname())
+    print(f"Binding to local ip {local_ip} on port {port}")
+    sock.close()
+    time.sleep(2)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    sock.bind((local_ip, port))
+    print("Binding successful\nEnabling datastream capture")
+    record = input("Do you want to record into a .wav file instead of speech-to-text conversion?")
     
     loop = True
     while loop:
-        print("fuck")
-        data, addr = sock.recvfrom(1024)
-        print(f"ESP {id}: {data.decode('utf-8')}")
-
+        if  record:
+            recordESP(sock)
+        else:
+            convertESP(sock)
+        
     sock.close()
+    
+def convertESP(sock):
+    pass
 
+def recordESP(sock):
+    with wave.open(OUTPUT_WAV, "wb") as wav_file:
+                wav_file.setnchannels(CHANNELS)
+                wav_file.setsampwidth(BITS_PER_SAMPLE // 8)
+                wav_file.setframerate(SAMPLE_RATE)
+                
+                print("Recording into recorded_audio.wav... Press Ctrl+C to stop")
+                
+                while True:
+                    data, addr = sock.recvfrom(1024)
+                    samples = struct.unpack('<' + 'h' * (len(data) // 2), data)
+                    wav_file.writeframes(struct.pack('<' + 'h' * len(samples), *samples))
 
 ########################## Start Connection ##########################
+
 setupESP()
 
 # Start threads for each ESP device
