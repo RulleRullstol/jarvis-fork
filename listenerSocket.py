@@ -101,12 +101,10 @@ def connectToESP(ip: str, port: int):
     print("Binding successful\nEnabling datastream capture")
     record = input("Do you want to record into a .wav file instead of speech-to-text conversion? [Y/N]")
     
-    loop = True
-    while loop:
-        if record.lower() == "y":
-            recordESP(sock)
-        else:
-            convertESP(sock)
+    if record.lower() == "y":
+        recordESP(sock)
+    else:
+        convertESP(sock)
         
     sock.close()
     
@@ -122,23 +120,21 @@ def recordESP(sock):
         print("Recording into recorded_audio.wav... Press Ctrl+C to stop")
         
         sample_count = 0
-        time0 = 0
-        time1 = 0
-        time2 = 0
+        time0 = 0 # Time since last sample recieved
         sample_stock = []
         sampling = True
         
         while sampling:
             if debug:
-                sample_count += 1
-                time1 = time.time()
-                print(f"Debug sample count : {sample_count}\nDebug time between samples : {time1 - time0}")
-                time2 += time1 - time0
-                time0 = time.time()
+                print(f"Debug sample count : {sample_count}\nDebug time since last sample : {(time.time_ns() - time0) * 1000000} ms")
+                time0 = time.time_ns()
+
             data, addr = sock.recvfrom(1024)
+            sample_count += 1
             samples = struct.unpack('<' + 'h' * (len(data) // 2), data)
             sample_stock.append(samples)
-            if time2 > 5:
+
+            if sample_count >= 500 :
                 sampling = False
             #time.sleep(len(data) / (SAMPLE_RATE / 2))
         for sample in sample_stock:
