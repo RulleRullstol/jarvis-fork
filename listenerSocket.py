@@ -6,10 +6,6 @@ import struct
 import json
 from configHandler import getESPCount, getBroadcastIp
 
-##############
-debug = True #
-##############
-
 BROADCAST_PORT = 9999
 
 ESP_LIST = []
@@ -120,15 +116,10 @@ def recordESP(sock):
         print("Recording into recorded_audio.wav... Press Ctrl+C to stop")
         
         sample_count = 0
-        time0 = 0 # Time since last sample recieved
         sample_stock = []
         sampling = True
         
         while sampling:
-            if debug:
-                print(f"Debug sample count : {sample_count}\nDebug time since last sample : {(time.time_ns() - time0) * 1000000} ms")
-                time0 = time.time_ns()
-
             data, addr = sock.recvfrom(1024)
             sample_count += 1
             samples = struct.unpack('<' + 'h' * (len(data) // 2), data)
@@ -139,7 +130,7 @@ def recordESP(sock):
             #time.sleep(len(data) / (SAMPLE_RATE / 2))
         for sample in sample_stock:
             wav_file.writeframes(struct.pack('<' + 'h' * len(sample), *sample))
-        
+        print("Done sampling!!!")
 
 ########################## Start Connection ##########################
 
