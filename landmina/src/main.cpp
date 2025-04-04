@@ -19,10 +19,10 @@ uint8_t audioData[BUFFER_SIZE];       // I2S buffer
 int16_t sBuffer[BUFFER_SIZE / 2];     // I2S samples (16-bit per sample)
 
 // Network settings
-//const char *ssid = "NG24";            // WiFi SSID
-//const char *password = "123asdqwe";   // WiFi Password
-const char* ssid = "TN_wifi_D737B5_EXT";
-const char* password = "LDMAEJJWDU";
+const char *ssid = "NG24";            // WiFi SSID
+const char *password = "123asdqwe";   // WiFi Password
+//const char* ssid = "TN_wifi_D737B5_EXT";
+//const char* password = "LDMAEJJWDU";
 
 // UDP settings
 WiFiUDP udp;
@@ -35,7 +35,7 @@ IPAddress remoteIP;                   // Pi's IP address
 // Semaphore & udp buffer
 SemaphoreHandle_t xSemaphore = NULL; // Semaphore for task synchronization
 const int UDP_BUFFER_SIZE = 2048;    // This impacts the size needed for the task
-const int UDP_PACKET_SIZE = 1024;    // Keep under 1400 otherwise udp.write() arg fails
+const int UDP_PACKET_SIZE = 1024;    // Keep under 1400 otherwise udp.write() arg
 std::vector<uint8_t> udpBuffer;
 
 void i2s_install() {
