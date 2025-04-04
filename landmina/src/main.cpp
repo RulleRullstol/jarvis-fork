@@ -13,7 +13,8 @@
 
 // I2S audio settings
 #define I2S_PORT I2S_NUM_0            // Use I2S Processor 0
-#define BUFFER_SIZE 256               // Buffer Size for each transmission
+#define BUFFER_SIZE 256               // I2S buffer, max 256
+#define SAMPLE_RATE 16000          	  // Sample rate for I2S
 uint8_t audioData[BUFFER_SIZE];       // I2S buffer
 int16_t sBuffer[BUFFER_SIZE / 2];     // I2S samples (16-bit per sample)
 
@@ -41,8 +42,8 @@ void i2s_install() {
 	// Set up I2S Processor configuration
 	const i2s_config_t i2s_config = {
 		.mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
-		.sample_rate = 16000,
-		.bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
+		.sample_rate = SAMPLE_RATE,
+		.bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT, // 16-bit samples
 		.channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
 		.communication_format = I2S_COMM_FORMAT_STAND_I2S,
 		.intr_alloc_flags = 0,
@@ -114,6 +115,7 @@ void broadcast(WiFiUDP &udp) {
 // Send audio data over UDP
 void udpSend(void *pvParameters) {
     std::vector<uint8_t> tempData;
+	uint lastTimeSent = 0;
     while (true) {
         // Wait for semaphore
         if (xSemaphoreTake(xSemaphore, portMAX_DELAY) == pdTRUE) {
@@ -128,10 +130,9 @@ void udpSend(void *pvParameters) {
                 udp.beginPacket(remoteIP, remotePort);
                 udp.write(data, UDP_PACKET_SIZE);
                 udp.endPacket();
-
+				Serial.printf("Time since last packet: %d\n", (micros() - lastTimeSent) / 1000);
+				lastTimeSent = micros();
                 tempData.clear();
-            } else {
-                Serial.println("Waiting for audio buffer..."); // Debug
             }
         }
         vTaskDelay(1); // Tydligen viktigt när det gäller freertos tasks
