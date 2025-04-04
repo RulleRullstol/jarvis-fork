@@ -12,7 +12,7 @@ ESP_LIST = []
 EXPECTED_ESP = getESPCount()
 
 OUTPUT_WAV = "recorded_audio.wav"
-SAMPLE_RATE = 16000
+SAMPLE_RATE = 22050
 CHANNELS = 1
 BITS_PER_SAMPLE = 16
 CHUNK_SIZE = 1024
@@ -113,11 +113,11 @@ def recordESP(sock):
         wav_file.setsampwidth(BITS_PER_SAMPLE // 8)
         wav_file.setframerate(SAMPLE_RATE)
         
-        print("Recording into recorded_audio.wav... Press Ctrl+C to stop")
         
         sample_count = 0
         sample_stock = []
         sampling = True
+        file_length = 1000
         
         while sampling:
             data, addr = sock.recvfrom(1024)
@@ -125,12 +125,15 @@ def recordESP(sock):
             samples = struct.unpack('<' + 'h' * (len(data) // 2), data)
             sample_stock.append(samples)
 
-            if sample_count >= 500 :
+            if sample_count >= file_length :
                 sampling = False
+            else:
+                print(f"Collecting samples ({sample_count//(file_length/100)}%)")
             #time.sleep(len(data) / (SAMPLE_RATE / 2))
-        for sample in sample_stock:
-            wav_file.writeframes(struct.pack('<' + 'h' * len(sample), *sample))
-        print("Done sampling!!!")
+        for i in range(len(sample_stock)):
+            wav_file.writeframes(struct.pack('<' + 'h' * len(sample_stock[i]), *sample_stock[i]))
+            print(f"Writing to file ({i//(len(sample_stock)/100)}%)")
+        print("Done Writing!!!")
 
 ########################## Start Connection ##########################
 

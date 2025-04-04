@@ -14,14 +14,14 @@
 // I2S audio settings
 #define I2S_PORT I2S_NUM_0            // Use I2S Processor 0
 #define BUFFER_SIZE 256               // I2S buffer, max 256
-#define SAMPLE_RATE 16000          	  // Sample rate for I2S
+#define SAMPLE_RATE 22050          	  // Sample rate for I2S
 uint8_t audioData[BUFFER_SIZE];       // I2S buffer
 int16_t sBuffer[BUFFER_SIZE / 2];     // I2S samples (16-bit per sample)
 
 // Network settings
 //const char *ssid = "NG24";            // WiFi SSID
 //const char *password = "123asdqwe";   // WiFi Password
-const char* ssid = "TN_wifi_D737B5";
+const char* ssid = "TN_wifi_D737B5_EXT";
 const char* password = "LDMAEJJWDU";
 
 // UDP settings
@@ -170,7 +170,7 @@ void setup() {
 	xTaskCreatePinnedToCore(
 		udpSend,                    // Task function
 		"udpSend",                  // Task name
-		8192,                       // Stack size
+		16384,                      // Stack size
 		NULL,                       // Parameters
 		1,                          // Priority
 		NULL,                       // Task handle
