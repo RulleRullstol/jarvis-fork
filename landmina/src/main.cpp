@@ -18,10 +18,10 @@ uint8_t audioData[BUFFER_SIZE];       // I2S buffer
 int16_t sBuffer[BUFFER_SIZE / 2];     // I2S samples (16-bit per sample)
 
 // Network settings
-const char *ssid = "NG24";            // WiFi SSID
-const char *password = "123asdqwe";   // WiFi Password
-// const char* ssid = "TN_wifi_D737B5";
-// const char* password = "LDMAEJJWDU";
+//const char *ssid = "NG24";            // WiFi SSID
+//const char *password = "123asdqwe";   // WiFi Password
+const char* ssid = "TN_wifi_D737B5";
+const char* password = "LDMAEJJWDU";
 
 // UDP settings
 WiFiUDP udp;

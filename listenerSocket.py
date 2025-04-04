@@ -4,7 +4,6 @@ import time
 import wave
 import struct
 import json
-from vosk import Model, KaldiRecognizer
 from configHandler import getESPCount, getBroadcastIp
 
  
@@ -17,7 +16,7 @@ OUTPUT_WAV = "recorded_audio.wav"
 SAMPLE_RATE = 44100
 CHANNELS = 1
 BITS_PER_SAMPLE = 16
-CHUNK_SIZE = 256
+CHUNK_SIZE = 1024
 
 # Create a UDP socket for listening to broadcasts
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP socket
@@ -41,7 +40,6 @@ def setupESP():
             data = data[-5:]
             if not ((int(data), addr) in ESP_LIST):
                 ESP_LIST.append((int(data), addr))
-            print(len(ESP_LIST))
 
         if len(ESP_LIST) == EXPECTED_ESP:
             setup = False
@@ -88,7 +86,7 @@ def connectToESP(ip: str, port: int):
     for i in range(20):
         sock.sendto(message.encode('utf-8'), (get_broadcast_ip(), BROADCAST_PORT))
         print(f"Returning digital handshake ({i*5}%)")
-    print("Returning digital handshake 100%\n")
+    print("Returning digital handshake (100%)\n")
     
     local_ip = socket.gethostbyname(socket.gethostname())
     print(f"Binding to local ip {local_ip} on port {port}")
@@ -98,11 +96,11 @@ def connectToESP(ip: str, port: int):
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     sock.bind((local_ip, port))
     print("Binding successful\nEnabling datastream capture")
-    record = input("Do you want to record into a .wav file instead of speech-to-text conversion?")
+    record = input("Do you want to record into a .wav file instead of speech-to-text conversion? [Y/N]")
     
     loop = True
     while loop:
-        if  record:
+        if record.lower() == "y":
             recordESP(sock)
         else:
             convertESP(sock)
@@ -114,18 +112,21 @@ def convertESP(sock):
 
 def recordESP(sock):
     with wave.open(OUTPUT_WAV, "wb") as wav_file:
-                wav_file.setnchannels(CHANNELS)
-                wav_file.setsampwidth(BITS_PER_SAMPLE // 8)
-                wav_file.setframerate(SAMPLE_RATE)
-                
-                print("Recording into recorded_audio.wav... Press Ctrl+C to stop")
-                
-                while True:
-                    data, addr = sock.recvfrom(1024)
-                    samples = struct.unpack('<' + 'h' * (len(data) // 2), data)
-                    wav_file.writeframes(struct.pack('<' + 'h' * len(samples), *samples))
+        wav_file.setnchannels(CHANNELS)
+        wav_file.setsampwidth(BITS_PER_SAMPLE // 8)
+        wav_file.setframerate(SAMPLE_RATE)
+        
+        print("Recording into recorded_audio.wav... Press Ctrl+C to stop")
+        
+        while True:
+            data = sock.recvfrom(1024)[0]
+            samples = struct.unpack('<' + 'h' * (len(data) // 2), data)
+            wav_file.writeframes(struct.pack('<' + 'h' * len(samples), *samples))
 
 ########################## Start Connection ##########################
+
+print(f"Broadcast ip found:         {get_broadcast_ip()}")
+print(f"Own ip found:               {socket.gethostbyname(socket.gethostname())}")
 
 setupESP()
 
