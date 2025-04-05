@@ -73,7 +73,7 @@ def get_broadcast_ip():
                 pass  # Handle any errors, e.g., if the IP format is unexpected
     return "255.255.255.255"  # Fallback if we can't determine the broadcast IP
 
-def connectToESP(ip: str, port: int):
+def connectToESP(port: int):
     """
     Connects to one ESP. Done in a seperate thread, once for each ESP
     to be connected.
@@ -148,7 +148,7 @@ def start():
     # Start threads for each ESP device
     for esp in ESP_LIST:
         print(f"Connecting to ESP {esp[0]-10000} at {esp[1][0]}")
-        thread = threading.Thread(target=connectToESP, args=(esp[1][0], esp[0]), daemon=True)
+        thread = threading.Thread(target=connectToESP, args=(esp[0]), daemon=True)
         thread.start()
 
     while True:
