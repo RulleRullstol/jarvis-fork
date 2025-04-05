@@ -4,7 +4,7 @@ import numpy as np
 from configHandler import getESPCount
 
 
-def MISISST(tsl: threadSafeList):
+def MISISTT(tsl: threadSafeList):
     current_index = 0
     for i in range(getESPCount()):
         samples = tsl.popInner()
