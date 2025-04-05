@@ -139,17 +139,18 @@ def recordESP(sock):
 
 ########################## Start Connection ##########################
 
-print(f"Broadcast ip found:         {get_broadcast_ip()}")
-print(f"Own ip found:               {socket.gethostbyname(socket.gethostname())}")
+def start():
+    print(f"Broadcast ip found:         {get_broadcast_ip()}")
+    print(f"Own ip found:               {socket.gethostbyname(socket.gethostname())}")
 
-setupESP()
+    setupESP()
 
-# Start threads for each ESP device
-for esp in ESP_LIST:
-    print(f"Connecting to ESP {esp[0]-10000} at {esp[1][0]}")
-    thread = threading.Thread(target=connectToESP, args=(esp[1][0], esp[0]), daemon=True)
-    thread.start()
+    # Start threads for each ESP device
+    for esp in ESP_LIST:
+        print(f"Connecting to ESP {esp[0]-10000} at {esp[1][0]}")
+        thread = threading.Thread(target=connectToESP, args=(esp[1][0], esp[0]), daemon=True)
+        thread.start()
 
-while True:
-    pass  # Keep the main thread alive so that threads can run
+    while True:
+        pass  # Keep the main thread alive so that threads can run
 
