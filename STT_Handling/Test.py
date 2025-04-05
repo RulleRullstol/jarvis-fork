@@ -5,10 +5,11 @@ def process_text(text):
 
 if __name__ == '__main__':
     recorder = AudioToTextRecorder(
-        language='en',
-        model='tiny',
+        language='sv',
+        model='base',
         device='cpu',
-        input_device_index=0
+        input_device_index=2,
+        spinner=False
     )
 
     while True:
