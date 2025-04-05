@@ -12,10 +12,10 @@ class ThreadSafeList:
         self._indexLock = threading.Lock() # Lås för get/set index
         self._index = 0  # Vilket element i listan som stt ska använda sig av
 
-    def getInner(self, index: int):
-        with self._elementLocks[index]:
+    def getInner(self):
+        with self._elementLocks[self._index]:
             try:
-                return self._list[index][0]
+                return self._list[self._index][0]
             except IndexError:
                 print(f"Om detta fel dyker upp är det nån jättestygg grunka som skett")
                 return None
