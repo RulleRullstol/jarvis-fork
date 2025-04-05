@@ -1,9 +1,9 @@
 import threadSafeList
-import listenerSocket
 import threading
 import MISISTT
 import stt
-from configHandler import getESPCount
+from ..configHandler import getESPCount
+import listenerSocket
 
 class audioStart:
     def __init__(self):

@@ -1,7 +1,7 @@
 
 import threadSafeList
 import numpy as np
-from configHandler import getESPCount
+from ..configHandler import getESPCount
 
 
 def start(tsl: threadSafeList):
@@ -13,5 +13,5 @@ def start(tsl: threadSafeList):
             rms = np.sqrt(np.mean(audio_data**2))
             if rms > current_index:
                 current_index = rms
-        
+
         tsl.set_index(current_index)
