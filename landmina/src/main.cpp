@@ -17,14 +17,11 @@
 #define I2S_PORT I2S_NUM_0                          // Use I2S Processor 0
 #define BYTES_PER_SAMPLE (BITS_PER_SAMPLE / 8)      // Bytes per sample
 
-// Magi
-using SampleType = typename std::conditional<
-    BITS_PER_SAMPLE == 8, int8_t,
-    typename std::conditional<
-        BITS_PER_SAMPLE == 16, int16_t,
-        typename std::conditional<
-            BITS_PER_SAMPLE == 24 || BITS_PER_SAMPLE == 32, int32_t,
-            void>::type>::type>::type;
+// Ge korrekt typ till sBuffer
+using SampleType = typename std::conditional<BITS_PER_SAMPLE == 8, int8_t,
+                    typename std::conditional<BITS_PER_SAMPLE == 16, int16_t,
+                    typename std::conditional<BITS_PER_SAMPLE == 24 || BITS_PER_SAMPLE == 32, int32_t,
+                    void>::type>::type>::type;
 
 // Skapa buffer av dynamisk typ & små skit
 SampleType sBuffer[(BUFFER_SIZE / (BITS_PER_SAMPLE / 8))];
@@ -51,7 +48,7 @@ const int UDP_BUFFER_SIZE = 2048;                   // UDP Buffer. buffer >= pac
 const int UDP_PACKET_SIZE = 1024;                   // Måste vara mindre än 1400 annars blir udp.write arg
 static uint8_t data[UDP_PACKET_SIZE];               // Data som plockas ut och skickas i udpSend
 
-class StaticBuffer {
+class buffer {
     private:
         uint8_t buffer[UDP_BUFFER_SIZE];            // Storlek
         size_t writeIndex = 0;                      // Index för skriv
@@ -65,18 +62,15 @@ class StaticBuffer {
             std::lock_guard<std::mutex> lock(mutex);
         
             if (len > (UDP_BUFFER_SIZE - count)) {
-                // Not enough space in the buffer
                 return false;
             }
         
             size_t spaceLeft = UDP_BUFFER_SIZE - writeIndex;
             size_t bytesToWrite = std::min(len, spaceLeft);
         
-            // Write data to the buffer without looping around
             std::copy(data, data + bytesToWrite, buffer + writeIndex);
-            writeIndex = (writeIndex + bytesToWrite) % UDP_BUFFER_SIZE;
+            writeIndex = (writeIndex + bytesToWrite) % UDP_BUFFER_SIZE; // Loopa tbks
         
-            // Handle remaining bytes if wrapping occurs
             if (len > bytesToWrite) {
                 size_t remainingBytes = len - bytesToWrite;
                 std::copy(data + bytesToWrite, data + len, buffer);
@@ -86,27 +80,28 @@ class StaticBuffer {
             count += len;
             return true;
         }
-    
+        
         size_t size() {
             std::lock_guard<std::mutex> lock(mutex);
             return count;
         }
-
+        
+        // Returnerar lista med storlek udpBufferSize
         void retrieveAndShift(uint8_t* outputBuffer) {
             std::lock_guard<std::mutex> lock(mutex);
 
             if (count < UDP_PACKET_SIZE) {
-                memset(outputBuffer, 0, UDP_PACKET_SIZE); // Fill with zeros if not enough data
+                memset(outputBuffer, 0, UDP_PACKET_SIZE); // Skicka tbks 0
                 return;
             }
             for (size_t i = 0; i < UDP_PACKET_SIZE; i++) {
                 outputBuffer[i] = buffer[readIndex];
-                readIndex = (readIndex + 1) % UDP_BUFFER_SIZE;
+                readIndex = (readIndex + 1) % UDP_BUFFER_SIZE; // Loopa tbks
             }
             count -= UDP_PACKET_SIZE;
         }
     };
-StaticBuffer udpBuffer;                    // Static buffer for UDP data
+buffer udpBuffer;                    // Static buffer for UDP data
 
 void i2s_install() {
     // Set up I2S Processor configuration
@@ -232,7 +227,7 @@ void setup() {
 
 void loop() {
     audioDataPtr = audioData; // Pilla tillbaka ptr till audioData element 0
-    size_t bytesRead = 0;       // Svammel till i2s.read
+    size_t bytesRead = 0;       // Hur många bytes som lästs
 
     // Read I2S data into the sBuffer
     i2s_read(I2S_PORT, &sBuffer, sBufferSize, &bytesRead, portMAX_DELAY);
@@ -240,7 +235,7 @@ void loop() {
     // Ny loop för samples av olika bit storlekar
     for (size_t i = 0; i < bytesRead / BYTES_PER_SAMPLE; i++) {
         for (short j = 0, shift = 0; j < (BYTES_PER_SAMPLE); j++, shift += 8) {
-            *audioDataPtr++ = (uint8_t)((sBuffer[i] >> shift) & 0xFF); 
+            *audioDataPtr++ = (uint8_t)((sBuffer[i] >> shift) & 0x00FF); 
         }
     }
 

@@ -3,6 +3,9 @@ import threading
 import time
 import wave
 import struct
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from configHandler import getESPCount, getBroadcastIp
 
 BROADCAST_PORT = 9999
@@ -81,7 +84,7 @@ def connectToESP(ip: str, port: int):
 
     id = port - 10000  # Calculate ESP ID based on the port
     message = "OK ESP_" + str(id)
-    for i in range(20):
+    for i in range(5):
         sock.sendto(message.encode('utf-8'), (get_broadcast_ip(), BROADCAST_PORT))
         print(f"Returning digital handshake ({i*5}%)")
     print("Returning digital handshake (100%)\n")
