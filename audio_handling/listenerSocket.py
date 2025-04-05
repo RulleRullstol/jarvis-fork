@@ -3,12 +3,8 @@ import threading
 import time
 import wave
 import struct
-import sys
-import os
 import threadSafeList
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from configHandler import getESPCount, getBroadcastIp
+from ..configHandler import getESPCount, getBroadcastIp
 
 BROADCAST_PORT = 9999
 
@@ -16,7 +12,7 @@ ESP_LIST = []
 EXPECTED_ESP = getESPCount()
 
 OUTPUT_WAV = "recorded_audio.wav"
-SAMPLE_RATE = 22050
+SAMPLE_RATE = 16000
 CHANNELS = 1
 BITS_PER_SAMPLE = 16
 CHUNK_SIZE = 1024

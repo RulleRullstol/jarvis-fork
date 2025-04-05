@@ -5,6 +5,7 @@ from RealtimeSTT import AudioToTextRecorder
 
 def start(pcmList: threadSafeList):
     """Stoppa in data i stt grunkan"""
+    recorder = AudioToTextRecorder(use_microphone=False)
     while True:
-        pcmList[pcmList.get_index()].pop()
-        
+        recorder.feed_audio(pcmList.getInner())
+        print("Transcription: ", recorder.text())
