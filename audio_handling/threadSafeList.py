@@ -3,7 +3,7 @@ from collections import deque
 
 class ThreadSafeList:
     """Lista som håller alla ESPs PCM packet i varsit element."""
-    def __init__(self, esps: int, maxElementSize):
+    def __init__(self, esps: int, maxElementSize: int):
         self._list = deque(maxlen=esps)  # Skapa lista av esps längd med element av listor med längden maxElementSize
         for e in self._list: 
             self._list[e] = deque(maxlen=maxElementSize)
@@ -12,28 +12,20 @@ class ThreadSafeList:
         self._indexLock = threading.Lock() # Lås för get/set index
         self._index = 0  # Vilket element i listan som stt ska använda sig av
 
-    def popInner(self, index: int):
+    def getInner(self, index: int):
         with self._elementLocks[index]:
             try:
-                return self._list[index].popleft()
+                return self._list[index][0]
             except IndexError:
-                print(f"Index {index} out of range or list[index] is not a list.")
+                print(f"Om detta fel dyker upp är det nån jättestygg grunka som skett")
                 return None
     
     def appendInner(self, index, data: list):
         with self._elementLocks[index]:
             try:
-                self._list[index].extend(data)
+                self._list[index].append()
             except IndexError:
                 print(f"Index {index} out of range.")
-
-    def debubPrintInnerListSize(self, index):
-        with self._elementLocks[index]:
-            try:
-                print(f"Inner list size at index {index}: {len(self._list[index])}")
-            except IndexError:
-                print(f"Index {index} out of range.")
-
 
     def get_index(self):
         with self._indexLock:

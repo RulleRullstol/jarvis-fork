@@ -3,10 +3,11 @@ import listenerSocket
 import threading
 import MISISTT
 import stt
+from configHandler import getESPCount
 
 class audioStart:
     def __init__(self):
-        self.pcmList = threadSafeList()
+        self.pcmList = threadSafeList(getESPCount(), 8)
 
     def start(self):
         # Start the listener socket to receive audio data
