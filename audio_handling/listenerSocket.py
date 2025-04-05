@@ -5,6 +5,8 @@ import wave
 import struct
 import sys
 import os
+import threadSafeList
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from configHandler import getESPCount, getBroadcastIp
 
@@ -73,7 +75,7 @@ def get_broadcast_ip():
                 pass  # Handle any errors, e.g., if the IP format is unexpected
     return "255.255.255.255"  # Fallback if we can't determine the broadcast IP
 
-def connectToESP(ip: str, port: int):
+def connectToESP(pcmList: threadSafeList, port: int):
     """
     Connects to one ESP. Done in a seperate thread, once for each ESP
     to be connected.
@@ -97,17 +99,19 @@ def connectToESP(ip: str, port: int):
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     sock.bind((local_ip, port))
     print("Binding successful\nEnabling datastream capture")
+    ############################################# DEBUG
     record = input("Do you want to record into a .wav file instead of speech-to-text conversion? [Y/N]")
     
     if record.lower() == "y":
         recordESP(sock)
     else:
-        convertESP(sock)
+        data = sock.recvfrom(1024)[0]
+        sample_count += 1
+        samples = struct.unpack('<' + 'h' * (len(data) // 2), data)
+        pcmList.appendInner(id, samples)
         
     sock.close()
     
-def convertESP(sock):
-    pass
 
 def recordESP(sock):
     with wave.open(OUTPUT_WAV, "wb") as wav_file:
@@ -139,7 +143,7 @@ def recordESP(sock):
 
 ########################## Start Connection ##########################
 
-def start():
+def start(pcmList: threadSafeList):
     print(f"Broadcast ip found:         {get_broadcast_ip()}")
     print(f"Own ip found:               {socket.gethostbyname(socket.gethostname())}")
 
@@ -148,7 +152,7 @@ def start():
     # Start threads for each ESP device
     for esp in ESP_LIST:
         print(f"Connecting to ESP {esp[0]-10000} at {esp[1][0]}")
-        thread = threading.Thread(target=connectToESP, args=(esp[1][0], esp[0]), daemon=True)
+        thread = threading.Thread(target=connectToESP, args=(pcmList, esp[0]), daemon=True)
         thread.start()
 
     while True:
