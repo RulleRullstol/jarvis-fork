@@ -53,36 +53,36 @@ static uint8_t data[UDP_PACKET_SIZE];               // Data som plockas ut och s
 
 class StaticBuffer {
     private:
-        uint8_t buffer[UDP_BUFFER_SIZE];            // Fixed-size buffer
-        size_t writeIndex = 0;                      // Index for writing data
-        size_t readIndex = 0;                       // Index for reading data
-        size_t count = 0;                           // Number of bytes currently in the buffer
-        std::mutex mutex;                           // Mutex for thread safety
+        uint8_t buffer[UDP_BUFFER_SIZE];            // Storlek
+        size_t writeIndex = 0;                      // Index för skriv
+        size_t readIndex = 0;                       // Index för läs
+        size_t count = 0;                           // element i buffern
+        std::mutex mutex;                           // Ajabaja stygg försvar
     
     public:
         // pushar en array, returns false om det inte finns plats, annars true
         bool push(const uint8_t* data, size_t len) {
             std::lock_guard<std::mutex> lock(mutex);
-
+        
             if (len > (UDP_BUFFER_SIZE - count)) {
                 // Not enough space in the buffer
                 return false;
             }
-
+        
             size_t spaceLeft = UDP_BUFFER_SIZE - writeIndex;
             size_t bytesToWrite = std::min(len, spaceLeft);
-
+        
             // Write data to the buffer without looping around
             std::copy(data, data + bytesToWrite, buffer + writeIndex);
             writeIndex = (writeIndex + bytesToWrite) % UDP_BUFFER_SIZE;
-
+        
             // Handle remaining bytes if wrapping occurs
             if (len > bytesToWrite) {
                 size_t remainingBytes = len - bytesToWrite;
                 std::copy(data + bytesToWrite, data + len, buffer);
                 writeIndex = remainingBytes;
             }
-
+        
             count += len;
             return true;
         }
@@ -92,24 +92,6 @@ class StaticBuffer {
             return count;
         }
 
-        // Retrieve array of bytes and shift buffer
-        std::array<uint8_t, UDP_PACKET_SIZE> retrieveAndShift() {
-            std::lock_guard<std::mutex> lock(mutex);
-
-            if (count < UDP_PACKET_SIZE) {
-                return std::array<uint8_t, UDP_PACKET_SIZE>{0}; // Not enough data
-            }
-
-            std::array<uint8_t, UDP_PACKET_SIZE> result;
-            for (size_t i = 0; i < UDP_PACKET_SIZE; i++) {
-                result[i] = buffer[readIndex];
-                readIndex = (readIndex + 1) % UDP_BUFFER_SIZE;
-            }
-
-            count -= UDP_PACKET_SIZE;
-            return result;
-        }
-
         void retrieveAndShift(uint8_t* outputBuffer) {
             std::lock_guard<std::mutex> lock(mutex);
 
@@ -117,12 +99,10 @@ class StaticBuffer {
                 memset(outputBuffer, 0, UDP_PACKET_SIZE); // Fill with zeros if not enough data
                 return;
             }
-
             for (size_t i = 0; i < UDP_PACKET_SIZE; i++) {
                 outputBuffer[i] = buffer[readIndex];
                 readIndex = (readIndex + 1) % UDP_BUFFER_SIZE;
             }
-
             count -= UDP_PACKET_SIZE;
         }
     };
