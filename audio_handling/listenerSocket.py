@@ -3,8 +3,8 @@ import threading
 import time
 import wave
 import struct
-import threadSafeList
-from ..configHandler import getESPCount, getBroadcastIp
+from threadSafeList import ThreadSafeList
+from configHandler import getESPCount, getBroadcastIp
 
 BROADCAST_PORT = 9999
 
@@ -71,7 +71,7 @@ def get_broadcast_ip():
                 pass  # Handle any errors, e.g., if the IP format is unexpected
     return "255.255.255.255"  # Fallback if we can't determine the broadcast IP
 
-def connectToESP(pcmList: threadSafeList, port: int):
+def connectToESP(pcmList: ThreadSafeList, port: int):
     """
     Connects to one ESP. Done in a seperate thread, once for each ESP
     to be connected.
@@ -96,17 +96,11 @@ def connectToESP(pcmList: threadSafeList, port: int):
     sock.bind((local_ip, port))
     print("Binding successful\nEnabling datastream capture")
     ############################################# DEBUG
-    record = input("Do you want to record into a .wav file instead of speech-to-text conversion? [Y/N]")
     
-    if record.lower() == "y":
-        recordESP(sock)
-    else:
+    while True:
         data = sock.recvfrom(1024)[0]
-        sample_count += 1
         samples = struct.unpack('<' + 'h' * (len(data) // 2), data)
         pcmList.appendInner(id, samples)
-        
-    sock.close()
     
 
 def recordESP(sock):
@@ -139,7 +133,7 @@ def recordESP(sock):
 
 ########################## Start Connection ##########################
 
-def start(pcmList: threadSafeList):
+def listenerSocketStart(pcmList: ThreadSafeList):
     print(f"Broadcast ip found:         {get_broadcast_ip()}")
     print(f"Own ip found:               {socket.gethostbyname(socket.gethostname())}")
 
