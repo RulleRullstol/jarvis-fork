@@ -2,13 +2,14 @@ import threading
 
 class ThreadSafeList:
     """Lista som håller alla ESPs PCM packet i varsit element."""
-    def __init__(self, maxElementSize):
-        self._list = [] # pcm data 
-        self._lock = threading.Lock()
-        self._index = 0  # Index
+    def __init__(self, esps: int, maxElementSize):
+        self._list = [[None] * maxElementSize for _ in range(esps)]  # Skapa lista av esps längd med element av listor med längden maxElementSize
+        self._elementLocks = [threading.Lock() for _ in range(esps)] # Ett lås för varje element i pcmListan
+        self._indexLock = threading.Lock() # Lås för get/set index
+        self._index = 0  # Vilket element i listan som stt ska använda sig av
 
     def popInner(self, index: int):
-        with self._lock:
+        with self._elementLocks[index]:
             try:
                 return self._list[index].pop(0)
             except IndexError:
@@ -16,14 +17,14 @@ class ThreadSafeList:
                 return None
     
     def appendInner(self, index, data: list):
-        with self._lock:
+        with self._elementLocks[index]:
             try:
                 self._list[index].extend(data)
             except IndexError:
                 print(f"Index {index} out of range.")
 
     def debubPrintInnerListSize(self, index):
-        with self._lock:
+        with self._elementLocks[index]:
             try:
                 print(f"Inner list size at index {index}: {len(self._list[index])}")
             except IndexError:
@@ -31,9 +32,9 @@ class ThreadSafeList:
 
 
     def get_index(self):
-        with self._lock:
+        with self._indexLock:
             return self._index
 
     def set_index(self, value):
-        with self._lock:
+        with self._indexLock:
             self._index = value
