@@ -3,7 +3,6 @@ import threading
 import time
 import wave
 import struct
-import json
 from configHandler import getESPCount, getBroadcastIp
 
 BROADCAST_PORT = 9999
