@@ -1,9 +1,13 @@
 import threading
+from collections import deque
 
 class ThreadSafeList:
     """Lista som håller alla ESPs PCM packet i varsit element."""
     def __init__(self, esps: int, maxElementSize):
-        self._list = [[None] * maxElementSize for _ in range(esps)]  # Skapa lista av esps längd med element av listor med längden maxElementSize
+        self._list = deque(maxlen=esps)  # Skapa lista av esps längd med element av listor med längden maxElementSize
+        for e in self._list: 
+            self._list[e] = deque(maxlen=maxElementSize)
+        
         self._elementLocks = [threading.Lock() for _ in range(esps)] # Ett lås för varje element i pcmListan
         self._indexLock = threading.Lock() # Lås för get/set index
         self._index = 0  # Vilket element i listan som stt ska använda sig av
@@ -11,7 +15,7 @@ class ThreadSafeList:
     def popInner(self, index: int):
         with self._elementLocks[index]:
             try:
-                return self._list[index].pop(0)
+                return self._list[index].popleft()
             except IndexError:
                 print(f"Index {index} out of range or list[index] is not a list.")
                 return None
@@ -38,3 +42,4 @@ class ThreadSafeList:
     def set_index(self, value):
         with self._indexLock:
             self._index = value
+
