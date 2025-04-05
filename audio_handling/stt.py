@@ -1,5 +1,6 @@
 
 import threadSafeList
+from RealtimeSTT import AudioToTextRecorder
 
 
 def start(pcmList: threadSafeList):
