@@ -1,7 +1,14 @@
 
 import threadSafeList
 import numpy as np
-from ..configHandler import getESPCount
+
+import os
+import sys
+
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(parent_dir)
+
+from configHandler import getESPCount
 
 
 def start(tsl: threadSafeList):
