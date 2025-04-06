@@ -7,7 +7,8 @@ def start(pcmList: ThreadSafeList):
 
     def onNewText(transcription):
         """callback för recorder.text"""
-        print("Transcription: ", transcription)
+        print("callback")
+        print(recorder.text())
 
     # Initialize the recorder with the callback
     recorder = AudioToTextRecorder(
@@ -26,4 +27,3 @@ def start(pcmList: ThreadSafeList):
         samples = pcmList.getInner(pcmList.get_index())
         samples_bytes = bytearray(struct.pack('h' * len(samples), *samples))
         recorder.feed_audio(samples_bytes)
-        recorder.text(on_transcription_finished=onNewText)
