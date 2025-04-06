@@ -1,4 +1,3 @@
-
 import os
 import sys
 import time
@@ -15,7 +14,6 @@ import listenerSocket
 
 class audioStart:
     def __init__(self):
-        print(getESPCount())
         self.pcmList = threadSafeList.ThreadSafeList(getESPCount(), 8)
         time.sleep(1)
 
@@ -29,8 +27,9 @@ class audioStart:
         #start MISISTT
         misisttThread = threading.Thread(target=MISISTT.misisttStart, args=(self.pcmList,), daemon=True)
         misisttThread.start()
-
-ast = audioStart()
-ast.audioStartStart()
-while True:
-    pass
+        
+if __name__ == "__main__":
+    ast = audioStart()
+    ast.audioStartStart()
+    while True:
+        pass

@@ -18,19 +18,18 @@ BITS_PER_SAMPLE = 16
 CHUNK_SIZE = 1024
 
 # Create a UDP socket for listening to broadcasts
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP socket
-sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)  # Allow broadcasting
-
-# Bind to all interfaces (0.0.0.0) or a specific local IP address
-sock.bind(('0.0.0.0', BROADCAST_PORT))  # Listen on all available interfaces
-
 def setupESP():
     """
     Searches for all expected ESP for first connection.
     """
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP socket
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)  # Allow broadcasting
+
+    # Bind to all interfaces (0.0.0.0) or a specific local IP address
+    sock.bind(('0.0.0.0', BROADCAST_PORT))  # Listen on all available interfaces
     setup = True
     while setup:
-        print(f"Searching for ESP's. {len(ESP_LIST)} of {EXPECTED_ESP} found")
+        print(f"{threading.current_thread().name}: Searching for ESP's. {len(ESP_LIST)} of {EXPECTED_ESP} found")
         time.sleep(1)
         data, addr = sock.recvfrom(1024)
         strdata = data.decode('utf-8')
@@ -84,17 +83,17 @@ def connectToESP(pcmList: ThreadSafeList, port: int):
     message = "OK ESP_" + str(id)
     for i in range(5):
         sock.sendto(message.encode('utf-8'), (get_broadcast_ip(), BROADCAST_PORT))
-        print(f"Returning digital handshake ({i*5}%)")
-    print("Returning digital handshake (100%)\n")
+        print(f"{threading.current_thread().name}: Returning digital handshake ({i*5}%)")
+    print(f"{threading.current_thread().name}: Returning digital handshake (100%)\n")
     
     local_ip = socket.gethostbyname(socket.gethostname())
-    print(f"Binding to local ip {local_ip} on port {port}")
+    print(f"{threading.current_thread().name}: Binding to local ip {local_ip} on port {port}")
     sock.close()
     time.sleep(2)
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     sock.bind((local_ip, port))
-    print("Binding successful\nEnabling datastream capture")
+    print(f"{threading.current_thread().name}: Binding successful\nEnabling datastream capture")
     ############################################# DEBUG
     
     while True:
@@ -134,14 +133,14 @@ def recordESP(sock):
 ########################## Start Connection ##########################
 
 def listenerSocketStart(pcmList: ThreadSafeList):
-    print(f"Broadcast ip found:         {get_broadcast_ip()}")
-    print(f"Own ip found:               {socket.gethostbyname(socket.gethostname())}")
+    print(f"Thread: {threading.current_thread().name}: Broadcast ip found:         {get_broadcast_ip()}")
+    print(f"Thread: {threading.current_thread().name}: Own ip found:               {socket.gethostbyname(socket.gethostname())}")
 
     setupESP()
 
     # Start threads for each ESP device
     for esp in ESP_LIST:
-        print(f"Connecting to ESP {esp[0]-10000} at {esp[1][0]}")
+        print(f"Thread: {threading.current_thread().name}: Connecting to ESP {esp[0]-10000} at {esp[1][0]}")
         thread = threading.Thread(target=connectToESP, args=(pcmList, esp[0]), daemon=True)
         thread.start()
 

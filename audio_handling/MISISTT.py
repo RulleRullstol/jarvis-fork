@@ -1,6 +1,7 @@
 
 from threadSafeList import ThreadSafeList
 import numpy as np
+import struct
 
 import os
 import sys
@@ -15,11 +16,12 @@ def misisttStart(tsl: ThreadSafeList):
     current_index = 0
     while True:
         for i in range(getESPCount()):
-            samples = tsl.getInner()
+            samples = tsl.getInner(i)
             if samples != None:
-                audio_data = np.frombuffer(samples, dtype=np.int16)
-                rms = np.sqrt(np.mean(audio_data**2))
+                samples_bytes = bytearray(struct.pack('h' * len(samples), *samples)) # Konvertera till bytearray
+                audio_data = np.frombuffer(samples_bytes, dtype=np.int16)
+                rms = np.sqrt(np.mean(np.abs(audio_data**2)))
                 if rms > current_index:
-                    current_index = rms
+                    current_index = i
 
         tsl.set_index(current_index)
