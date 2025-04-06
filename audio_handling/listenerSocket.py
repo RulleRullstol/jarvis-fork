@@ -98,8 +98,7 @@ def connectToESP(pcmList: ThreadSafeList, port: int):
     
     while True:
         data = sock.recvfrom(1024)[0]
-        samples = struct.unpack('<' + 'h' * (len(data) // 2), data)
-        pcmList.appendInner(id, samples)
+        pcmList.writeStream(id, data)
     
 
 def recordESP(sock):

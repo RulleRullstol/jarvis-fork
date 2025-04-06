@@ -14,7 +14,7 @@ import listenerSocket
 
 class audioStart:
     def __init__(self):
-        self.pcmList = threadSafeList.ThreadSafeList(getESPCount(), 8)
+        self.pcmList = threadSafeList.ThreadSafeList(getESPCount())
         time.sleep(1)
 
     def audioStartStart(self):
@@ -25,8 +25,8 @@ class audioStart:
         sttThread = threading.Thread(target=stt.start, args=(self.pcmList,), daemon=True)
         sttThread.start()
         #start MISISTT
-        misisttThread = threading.Thread(target=MISISTT.misisttStart, args=(self.pcmList,), daemon=True)
-        misisttThread.start()
+        #misisttThread = threading.Thread(target=MISISTT.misisttStart, args=(self.pcmList,), daemon=True)
+        #misisttThread.start()
         
 if __name__ == "__main__":
     ast = audioStart()

@@ -16,7 +16,7 @@ def misisttStart(tsl: ThreadSafeList):
     current_index = 0
     while True:
         for i in range(getESPCount()):
-            samples = tsl.getInner(i)
+            samples = tsl.readStream(i)
             if samples != None:
                 samples_bytes = bytearray(struct.pack('h' * len(samples), *samples)) # Konvertera till bytearray
                 audio_data = np.frombuffer(samples_bytes, dtype=np.int16)
