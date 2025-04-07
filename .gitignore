@@ -1,6 +1,3 @@
 *.env
 .vscode
-__pycache__
-config.ini
-realtimesst.log
-whisper
+
