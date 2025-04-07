@@ -8,13 +8,13 @@ from configHandler import getESPCount
 
 import threadSafeList
 import threading
-import MISISTT
+#import MISISTT
 import stt
 import listenerSocket
 
 class audioStart:
     def __init__(self):
-        self.pcmList = threadSafeList.ThreadSafeList(getESPCount())
+        self.pcmList = threadSafeList.audioBuffers(getESPCount())
         time.sleep(1)
 
     def audioStartStart(self):
@@ -22,7 +22,7 @@ class audioStart:
         listenerMomaThread = threading.Thread(target=listenerSocket.listenerSocketStart, args=(self.pcmList,), daemon=True)
         listenerMomaThread.start()
         #start STT
-        sttThread = threading.Thread(target=stt.start, args=(self.pcmList,), daemon=True)
+        sttThread = threading.Thread(target=stt.sttStart, args=(self.pcmList,), daemon=True)
         sttThread.start()
         #start MISISTT
         #misisttThread = threading.Thread(target=MISISTT.misisttStart, args=(self.pcmList,), daemon=True)
