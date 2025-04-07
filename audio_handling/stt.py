@@ -3,11 +3,13 @@ from threadSafeList import audioBuffers
 from RealtimeSTT import AudioToTextRecorder
 import threading
 import time
+import pyaudio
+pyaudio.Stream.read
 
 def sttStart(pcmList: audioBuffers): # PCMlista är numera lista av pyaudio streams
     """Feed audio chunks to the recorder and handle transcription."""
     # Audio stream configuration constants
-    CHUNK = 512                 # Måste vara mindre än 512
+    CHUNK = 512                # Måste vara mindre än 512
 
     # Initialize the audio-to-text recorder without using the microphone directly
     # Since we are feeding audio data manually, set use_microphone to False
@@ -26,14 +28,14 @@ def sttStart(pcmList: audioBuffers): # PCMlista är numera lista av pyaudio stre
     )
 
     def feed_audio_thread(pcmList: audioBuffers):
+            recorder.start()
             """Thread function to read audio data, save it to a .wav file, and feed it to the recorder."""
             try:
                 print(f"{threading.current_thread().name}: Reading buffers...")
                 while not stop_event.is_set():
-                    time.sleep(0.01)  # Sleep for a short duration to avoid busy waiting
                     # Read audio data from the buffer
                     data = pcmList.readBytes(pcmList.getIndex(), CHUNK)  # Read CHUNK bytes
-                    if data:= None:
+                    if data != None:
                         recorder.feed_audio(data)
             except Exception as e:
                 print(f"feed_audio_thread encountered an error: {e}")
@@ -46,6 +48,7 @@ def sttStart(pcmList: audioBuffers): # PCMlista är numera lista av pyaudio stre
             def process_text(full_sentence):   
                 """Callback function to process the transcribed text."""
                 print(f"{threading.current_thread().name} Transcribed text:", full_sentence, "")
+                recorder.start()
                 # Check for the stop command in the transcribed text
                 if "stop recording" in full_sentence.lower():
                     print("Stop command detected. Stopping threads...")
