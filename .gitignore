@@ -1,4 +1,4 @@
 *.env
 .vscode
 config.ini
-
+./includes/.config.ini
