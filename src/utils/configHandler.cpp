@@ -13,13 +13,18 @@ class ConfigHandler {
         }
     }
 
+    // Returns all sections
+    std::string getSections() {
+        return reader.Get("", "", "");
+    }
+
     // Returns the value of the key in the section
     std::string getValue(const std::string& section, const std::string& key) {
         return reader.Get(section, key, "");
     }
 
     // Returns all key-value pairs in section
-    std::string getSection(const std::string& section) {
+    std::string getKeyValues(const std::string& section) {
         return reader.Get(section, "", "");
     }
 };
