@@ -8,18 +8,10 @@ project(jarvisCPP)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Libraries
-include(FetchContent)
-FetchContent_Declare(
-  cpr
-  GIT_REPOSITORY https://github.com/libcpr/cpr.git
-  GIT_TAG 1.11.2
-)
-FetchContent_MakeAvailable(cpr)
-
 # All .cpp and .c files in the workspace
 file(GLOB_RECURSE SOURCES_CPP "${CMAKE_SOURCE_DIR}/*.cpp")
 file(GLOB_RECURSE SOURCES_C "${CMAKE_SOURCE_DIR}/*.c")
+include_directories("${CMAKE_SOURCE_DIR}/*.h")
 
 # Combine .cpp and .c files into a single list
 set(SOURCES ${SOURCES_CPP} ${SOURCES_C})

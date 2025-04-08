@@ -1,23 +1,17 @@
 #include <iostream>
 #include <string>
 #include "configHandler.cpp"
+#include "../../libs/cpp-httplib/httplib.h"
 
-using namespace std;
+
 
 int main() {
-    ConfigHandler configHandler;
-
-    // Test getSections
-    string sections = configHandler.getSections();
-    cout << "Sections: " << sections << endl;
-
-    // Test getValue
-    string value = configHandler.getValue("section1", "key1");
-    cout << "Value of section1.key1: " << value << endl;
-
-    // Test getKeyValues
-    string keyValues = configHandler.getKeyValues("section1");
-    cout << "Key-Values in section1: " << keyValues << endl;
-
-    return 0;
+    httplib::Client client("google.com");
+    auto res = client.Get("/");
+    if (res) {
+        std::cout << "Response status: " << res->status << std::endl;
+        std::cout << "Response body: " << res->body << std::endl;
+    } else {
+        std::cerr << "Error: " << res.error() << std::endl;
+    }
 }
