@@ -1,4 +1,4 @@
-#include "ConfigHandler.h"
+#include "configHandler.h"
 #include <iostream>
 
 using namespace std;
