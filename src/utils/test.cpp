@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include "configHandler.cpp"
-#include "../../libs/cpp-httplib/httplib.h"
+#include <httplib.h>
 
 
 
