@@ -16,8 +16,8 @@ class ConfigHandler {
     }
 
     // Returns all sections
-    string getSections() {
-        return reader.Get("", "", "");
+    vector<string> getSections() {
+        return reader.Sections();
     }
 
     // Returns the value of the key in the section
@@ -26,8 +26,8 @@ class ConfigHandler {
     }
 
     // Returns all key-value pairs in section
-    string getKeyValues(const string& section) {
-        return reader.Get(section, "", "");
+    vector<string> getKeys(const string& section) {
+        return reader.Keys(section);
     }
 };
 

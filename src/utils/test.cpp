@@ -5,19 +5,29 @@
 using namespace std;
 
 int main() {
+
     ConfigHandler configHandler;
 
     // Test getSections
-    string sections = configHandler.getSections();
-    cout << "Sections: " << sections << endl;
+    vector<string> sections;
+    sections = configHandler.getSections();
+    cout << "Sections: ";
+    for (string sec : sections)
+        cout << sec << " ";
+
+    cout << endl;
 
     // Test getValue
-    string value = configHandler.getValue("section1", "key1");
+    string value = configHandler.getValue("ha_headers", "authorization");
     cout << "Value of section1.key1: " << value << endl;
 
     // Test getKeyValues
-    string keyValues = configHandler.getKeyValues("section1");
-    cout << "Key-Values in section1: " << keyValues << endl;
+    vector<string> keyValues;
+    keyValues = configHandler.getKeyValues("ha_headers");
+    cout << "Keys:";
+    for (string key : keyValues)
+        cout << key << " ";
 
+    cout << endl;
     return 0;
 }
