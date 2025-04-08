@@ -1,47 +1,35 @@
-#include "../../libs/INIReader/INIReader.h"
+#include "ConfigHandler.h"
 #include <iostream>
-#include <string>
 
 using namespace std;
 
-class ConfigHandler {
-    private: INIReader reader;
+ConfigHandler::ConfigHandler(const string& filename) : reader(filename) {
+    if (reader.ParseError() != 0) {
+        cerr << "Error opening config.ini" << endl;
+    }
+    cout << "Config file loaded successfully." << endl;
+}
 
-    public:
-    ConfigHandler(const string& filename = "../../includes/config.ini") : reader(filename) {
-        if (reader.ParseError() != 0) {
-            cerr << "Error opening config.ini" << endl;
+vector<string> ConfigHandler::getSections() {
+    return reader.Sections();
+}
+
+vector<string> ConfigHandler::getKeys(const string& section) {
+    return reader.Keys(section);
+}
+
+string ConfigHandler::getValue(const string& section, const string& key) {
+    return reader.Get(section, key, "");
+}
+
+
+vector<string> ConfigHandler::getLights() {
+    vector<string> lights;
+    vector<string> sections = getSections();
+    for (const string& sec : sections) {
+        if (sec.find("light") != string::npos) {
+            lights.push_back(sec);
         }
-        cout << "Config file loaded successfully." << endl;
     }
-
-    // Returns all sections
-    vector<string> getSections() {
-        return reader.Sections();
-    }
-    
-    // Returns all key-value pairs in section
-    vector<string> getKeys(const string& section) {
-            return reader.Keys(section);
-        }
-    // Returns the value of the key in the section
-    string getValue(const string& section, const string& key) {
-        return reader.Get(section, key, "");
-    }
-
-    // Returns all lights
-    vector<string> getLights() {
-        vector<string> lights;
-        vector<string> sections = getSections();
-        for (string sec : sections) {
-            if (sec.find("light") != string::npos) {
-                lights.push_back(sec);
-            }
-        }
-        return lights;
-    }
-};
-
-
-
-
+    return lights;
+}
