@@ -1,0 +1,5 @@
+"libs/INIReader/ini.c"
+"libs/INIReader/INIReader.cpp"
+
+"src/utils/configHandler.cpp"
+"src/utils/test.cpp"

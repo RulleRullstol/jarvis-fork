@@ -1,17 +1,13 @@
 #include <iostream>
 #include <string>
 #include "configHandler.cpp"
-#include <httplib.h>
-
-
+#include "../../libs/httplib.h"
 
 int main() {
+    std::cout << "Running";
     httplib::Client client("google.com");
     auto res = client.Get("/");
-    if (res) {
-        std::cout << "Response status: " << res->status << std::endl;
-        std::cout << "Response body: " << res->body << std::endl;
-    } else {
-        std::cerr << "Error: " << res.error() << std::endl;
-    }
+    if (res && res->status)
+        std::cout << res->status << std::endl;
+
 }
