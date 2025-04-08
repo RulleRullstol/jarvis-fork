@@ -23,7 +23,7 @@ int main() {
 
     // Test getKeyValues
     vector<string> keyValues;
-    keyValues = configHandler.getKeyValues("ha_headers");
+    keyValues = configHandler.getKeys("ha_headers");
     cout << "Keys:";
     for (string key : keyValues)
         cout << key << " ";
