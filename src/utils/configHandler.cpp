@@ -12,6 +12,7 @@ class ConfigHandler {
         if (reader.ParseError() != 0) {
             cerr << "Error opening config.ini" << endl;
         }
+        cout << "Config file loaded successfully." << endl;
     }
 
     // Returns all sections
@@ -29,6 +30,7 @@ class ConfigHandler {
         return reader.Get(section, "", "");
     }
 };
+
 
 
 
