@@ -33,3 +33,15 @@ vector<string> ConfigHandler::getLights() {
     }
     return lights;
 }
+
+// Returns sections containing the str passed
+vector<string> ConfigHandler::findSections(const string& name) {}
+    vector<string> foundSecs;
+    vector<string> sections = getSections();
+    for (const string& secName : sections) {
+        if (secName.contains(name) {
+            foundSecs.push_back(secName);
+        }
+    }
+    return foundSecs;
+}
