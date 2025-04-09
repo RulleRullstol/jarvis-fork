@@ -1,13 +1,13 @@
+#include "webUtils.h"
 #include <iostream>
 #include <string>
-#include "configHandler.cpp"
-#include "../../libs/httplib.h"
+#include <vector>
 
 int main() {
-    std::cout << "Running";
-    httplib::Client client("google.com");
-    auto res = client.Get("/");
-    if (res && res->status)
-        std::cout << res->status << std::endl;
+  WebUtils web = WebUtils();
+  std::vector<std::string> headers;
+  std::string res = web.send("google.com", headers, "");
+  std::cout << "Respone: " << res << std::endl;
 
+  return 0;
 }
