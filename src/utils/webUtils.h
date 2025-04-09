@@ -1,3 +1,6 @@
+
+// sudo apt-get install libcurl4-openssl-dev
+
 #ifndef WEBUTILS_H
 #define WEBUTILS_H
 
