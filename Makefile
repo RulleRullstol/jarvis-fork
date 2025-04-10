@@ -2,7 +2,7 @@ CXX = clang++
 CXXFLAGS = -std=c++22 -Wall -Wextra -pedantic -O2
 LDFLAGS = -lcurl
 
-SOURCES = test.cpp webUtils.cpp
+SOURCES = main.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
 EXEC = output
 
