@@ -10,10 +10,9 @@
 #include <string>
 #include <vector>
 
-class WebUtils {
+class CurlPost {
 private:
   std::string response;
-  CURLcode res;
   CURL *curl;
 
   void setHeaders(const std::vector<std::string> &headers);
@@ -23,8 +22,8 @@ private:
                               std::string *userp);
 
 public:
-  WebUtils();
-  ~WebUtils();
+  CurlPost();
+  ~CurlPost();
 
   std::string post(const std::string &url,
                    const std::vector<std::string> &headers,

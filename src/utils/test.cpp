@@ -4,7 +4,7 @@
 #include <vector>
 
 int main() {
-  WebUtils web;
+  CurlPost web;
   std::vector<std::string> headers;
   std::string res = web.post("google.com", headers, "");
   std::cout << "Respone: " << res << std::endl;
