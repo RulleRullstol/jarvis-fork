@@ -1,3 +1,43 @@
+[config]
+  config.ini ------------Klar /S
+  configHandler ---------------Klar /S
+
+
+[web]
+  POST för att snacka med api ----------Klar /S
+
+
+[light kod]
+  lightHandler -----------Klar /S
+
+
+[ljud]
+  [mic ljud från ESP]
+    Klar /S
+
+  [mic ljud till pi]
+    Nein
+
+  [högtalar ljud till ESP]
+    Nein
+
+
+[AI]
+  function-calling & prompts
+  llm med konversationsminne
+
+  [Protocol]
+    Nein
+
+
+[Mail]
+  Nein
+
+
+
+
+
+
 Testa om lightMain koden fungerar på kjellbergs maskin /S 
 Aktivera jarvis konversationsminne /K 
 Implementera LLM inställningar från config.ini så att användaren kan välja/konfigurera vilken ai den vill använda /S 
