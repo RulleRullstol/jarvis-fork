@@ -4,9 +4,9 @@
 #include <vector>
 
 int main() {
-  WebUtils web = WebUtils();
+  WebUtils web;
   std::vector<std::string> headers;
-  std::string res = web.send("google.com", headers, "");
+  std::string res = web.post("google.com", headers, "");
   std::cout << "Respone: " << res << std::endl;
 
   return 0;

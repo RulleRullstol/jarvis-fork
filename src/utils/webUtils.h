@@ -26,7 +26,7 @@ public:
   WebUtils();
   ~WebUtils();
 
-  std::string send(const std::string &url,
+  std::string post(const std::string &url,
                    const std::vector<std::string> &headers,
                    const std::string &body);
 };
