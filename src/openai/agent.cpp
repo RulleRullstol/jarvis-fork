@@ -1,13 +1,5 @@
 #include "agent.h"
-#include "../utils/configHandler.h"
-#include "../utils/web/webUtils.h"
-#include <jsoncpp/json/json.h>
-#include <jsoncpp/json/reader.h>
-#include <jsoncpp/json/value.h>
-#include <string>
-#include <vector>
 
-using namespace std;
 // tool_choice = "none", "auto", "required"
 Agent::Agent(message sysMsg, bool useTools, string tool_choice) {
   fetchConfig();

@@ -1,7 +1,4 @@
 #include "envParser.h"
-#include <fstream>
-#include <iostream>
-#include <unordered_map>
 
 // env variabler i filen
 static unordered_map<string, string> envMap;

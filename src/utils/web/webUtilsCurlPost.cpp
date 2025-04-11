@@ -1,11 +1,4 @@
 #include "webUtils.h"
-#include <cstddef>
-#include <curl/curl.h>
-#include <stdexcept>
-#include <string>
-#include <vector>
-
-using namespace std;
 
 void CurlPost::setHeaders(const vector<string> &headers) {
   struct curl_slist *chunk = NULL;
