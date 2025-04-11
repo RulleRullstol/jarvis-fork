@@ -4,15 +4,14 @@
 Agent::Agent(message sysMsg, bool useTools, string tool_choice) {
   fetchConfig();
   systemMsg = sysMsg;
-  if (useTools)
-    toolChoice = tool_choice;
-  else
-    toolChoice = "none";
 
-  if (useTools)
+  if (useTools) {
+    toolChoice = tool_choice;
     tools = Json::Value();
-  else
+  } else {
+    toolChoice = "none";
     tools = NULL;
+  }
 }
 
 Agent::~Agent() { return; }
