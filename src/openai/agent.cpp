@@ -27,7 +27,7 @@ void Agent::fetchConfig() {
   // Greppa openAI token
   token = getEnvValue("OPENAI_API_KEY", "../../includes/.env");
   if (!token.compare(""))
-    cout << "Agent failed to load API key" << endl;
+    cerr << "Agent failed to load API key" << endl;
 }
 
 Json::Value msgToJson(message msg) {
