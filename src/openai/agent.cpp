@@ -30,26 +30,6 @@ void Agent::fetchConfig() {
     cerr << "Agent failed to load API key" << endl;
 }
 
-Json::Value msgToJson(message msg) {
-  Json::Value msgJson;
-  msgJson["role"] = msg.role;
-  msgJson["content"] = msg.content;
-  return msgJson;
-}
-
-Json::Value Agent::requestToJson(request req) {
-  Json::Value jsonReq;
-  jsonReq["model"] = req.model;
-  jsonReq["max_tokens"] = req.max_tokens;
-  jsonReq["tool_choice"] = toolChoice;
-
-  for (const auto &msg : req.messages)
-    jsonReq["messages"].append(msgToJson(msg));
-
-  jsonReq["tools"] = tools;
-  return jsonReq;
-}
-
 void Agent::addHistory(message msg) {
   if (history.size() >= maxHistory)
     history.erase(history.begin());
@@ -57,7 +37,7 @@ void Agent::addHistory(message msg) {
 }
 
 // str -> Json
-Json::Value strToJson(string str) {
+Json::Value resBodyToJson(string str) {
   Json::Value strJson;
   Json::CharReaderBuilder reader;
   string errs;
@@ -87,8 +67,8 @@ Json::Value Agent::query(message msg) {
   // Post
   vector<string> headers = {"Content-Type: application/json",
                             "Authorization: Bearer " + token};
-  string body = Json::FastWriter().write(requestToJson(req));
+  string body = Json::FastWriter().write(structToJson(req));
   string response = crl.post(apiUrl, headers, body);
 
-  return strToJson(response);
+  return resBodyToJson(response);
 }
