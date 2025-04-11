@@ -10,26 +10,18 @@
 
 using namespace std;
 
-// macro för message struct
-#define messageMacro(Structname)                                               \
-  struct Structname {                                                          \
-    string role;                                                               \
-    string content;                                                            \
-  };
-messageMacro(message);
+struct message {
+  string role;
+  string content;
+};
 
-// macro for API completionResponse. Det vi behöver
-#define requestMacro(StructName)                                               \
-  struct StructName {                                                          \
-    string model;                                                              \
-    int max_tokens;                                                            \
-    vector<message> messages;                                                  \
-    Json::Value tools; /*[{}]*/                                                \
-    string tool_choice;                                                        \
-  };
-
-// Skapa struct
-requestMacro(request);
+struct request {
+  string model;
+  int max_tokens;
+  vector<message> messages;
+  Json::Value tools; /*[{}]*/
+  string tool_choice;
+};
 
 class Agent {
 private:
