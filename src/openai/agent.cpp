@@ -50,7 +50,18 @@ Json::Value resBodyToJson(string str) {
   return strJson;
 }
 
-// req -> CurlPost
+message getResMessage(Json::Value res) {
+  message msg;
+  try {
+    msg.role = res["choices"][0]["message"]["role"].asString();
+    msg.content = res["choices"][0]["message"]["content"].asString();
+  } catch (const exception &e) {
+    cout << "Error while parsing message from response: " << e.what() << endl;
+  }
+  return msg;
+}
+
+// req -> CurlPost. Retrunerar tom Json om nåt gått snett
 Json::Value Agent::query(message msg) {
   addHistory(msg);
   // Skapa requestt
@@ -67,8 +78,23 @@ Json::Value Agent::query(message msg) {
   // Post
   vector<string> headers = {"Content-Type: application/json",
                             "Authorization: Bearer " + token};
-  string body = Json::FastWriter().write(structToJson(req));
+  string body = Json::FastWriter().write(
+      structToJson(req)); // Denna fungerar bara för structs i reflect<>
   string response = crl.post(apiUrl, headers, body);
+  Json::Value jsonRes = resBodyToJson(response);
 
-  return resBodyToJson(response);
+  // Kontrollera om nåt sket ner sig
+  try {
+    if (jsonRes["error"].isObject()) {
+      cout << "Error in openai response: "
+           << jsonRes["error"]["message"].asString() << endl;
+      return Json::Value(); // Returnera tom json om klagomål
+    }
+  } catch (const exception &e) {
+    cout << "Error: " << e.what() << endl;
+  }
+  // Stoppa in svar i history
+  history.push_back(getResMessage(jsonRes));
+
+  return jsonRes;
 }

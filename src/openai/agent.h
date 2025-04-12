@@ -76,6 +76,12 @@ template <typename T> Json::Value structToJson(T &obj) {
   return json;
 }
 
+static string jsonToString(const Json::Value &json) {
+  Json::StreamWriterBuilder builder;
+  builder["indentation"] = "";
+  return Json::writeString(builder, json);
+}
+
 class Agent {
 private:
   CurlPost crl;
@@ -92,6 +98,7 @@ private:
   string token;
 
   Json::Value resBodyToJson(string str);
+  message getResMessage(Json::Value res);
   void addHistory(message msg);
   void fetchConfig();
 
