@@ -8,7 +8,7 @@ LDFLAGS = -lcurl -ljsoncpp
 # Directories
 SRC_DIR := .
 BUILD_DIR := build
-EXEC := main
+EXEC := mainExec
 
 # Find all .cpp and .c source files
 CPP_SOURCES := $(shell find $(SRC_DIR) -name '*.cpp')

@@ -4,14 +4,14 @@
 Agent::Agent(message sysMsg, bool useTools, string tool_choice) {
   fetchConfig();
   systemMsg = sysMsg;
-
-  if (useTools) {
-    toolChoice = tool_choice;
-    tools = Json::Value();
-  } else {
-    toolChoice = "none";
-    tools = NULL;
-  }
+  /*
+    if (useTools) {
+      toolChoice = tool_choice;
+      // tools;
+    } else {
+      toolChoice = "none";
+      // tools;
+    }*/
 }
 
 Agent::~Agent() { return; }
@@ -50,7 +50,7 @@ Json::Value resBodyToJson(string str) {
   return strJson;
 }
 
-message getResMessage(Json::Value res) {
+message Agent::getResMessage(Json::Value res) {
   message msg;
   try {
     msg.role = res["choices"][0]["message"]["role"].asString();
@@ -73,7 +73,7 @@ Json::Value Agent::query(message msg) {
   // meddelanden & tools
   req.messages = history;
   req.messages.push_back(systemMsg);
-  req.tools = tools;
+  // req.tools = tools;
 
   // Post
   vector<string> headers = {"Content-Type: application/json",
@@ -83,16 +83,6 @@ Json::Value Agent::query(message msg) {
   string response = crl.post(apiUrl, headers, body);
   Json::Value jsonRes = resBodyToJson(response);
 
-  // Kontrollera om nåt sket ner sig
-  try {
-    if (jsonRes["error"].isObject()) {
-      cout << "Error in openai response: "
-           << jsonRes["error"]["message"].asString() << endl;
-      return Json::Value(); // Returnera tom json om klagomål
-    }
-  } catch (const exception &e) {
-    cout << "Error: " << e.what() << endl;
-  }
   // Stoppa in svar i history
   history.push_back(getResMessage(jsonRes));
 

@@ -7,8 +7,8 @@ using namespace std;
 ConfigHandler::ConfigHandler(const string &filename) : reader(filename) {
   if (reader.ParseError() != 0) {
     cerr << "Error opening config.ini" << endl;
-  }
-  cout << "Config file loaded successfully." << endl;
+  } else
+    cout << "Config file loaded successfully." << endl;
 }
 
 vector<string> ConfigHandler::getSections() { return reader.Sections(); }

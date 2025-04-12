@@ -22,7 +22,7 @@ struct request {
   string model;
   int max_tokens;
   vector<message> messages;
-  Json::Value tools; /*[{}]*/
+  // vector<Json::Value> tools; /*[{}]*/
   string tool_choice;
 };
 
@@ -39,20 +39,21 @@ template <> struct reflect<request> {
   using T = request;
   static constexpr auto fields = make_tuple(
       make_pair("model", &T::model), make_pair("max_tokens", &T::max_tokens),
-      make_pair("messages", &T::messages), make_pair("tools", &T::tools),
+      // make_pair("messages", &T::messages), make_pair("tools", &T::tools),
       make_pair("tool_choice", &T::tool_choice));
 };
 
-template <typename T> using hasReflect = decltype(reflect<T>::fields, void());
+// Default value, false
+template <typename T, typename = void> struct hasReflect : false_type {};
+
+template <typename T>
+struct hasReflect<T, std::void_t<decltype(reflect<std::decay_t<T>>::fields)>>
+    : std::true_type {};
 // Testa läsa typen på reflect::field. Om
-// definierad: decltype lyckas; -> void
-// Annars
+// definierad: decltype lyckas; -> true
 
 template <typename T> struct reflectable {
-  static constexpr bool value =
-      is_same_v<hasReflect<T>,
-                void>; // Kolla om hasReflect ger void isf true. Om decltype
-                       // misslyckas kommer is_same ge false.
+  static constexpr bool value = hasReflect<T>::value;
 };
 
 // compile time loop för att iterera över tupel element, F = &&function()
@@ -95,30 +96,35 @@ void forInTuple(Tuple &&t, F &&f) {
 
 // struct -> json genom att rekursera genom nested structs. Kan bara ta structs
 // definierade i reflect<>
-template <typename T> Json::Value structToJson(T &obj) {
+template <typename T>
+Json::Value structToJson(T &&obj) { // && för & verka inte fungera här
+  // Allam <T> Måste decayas innan de används annars skiter det ner sig
+  using DecayedT = std::decay_t<T>;
   Json::Value json;
 
-  if constexpr (reflectable<T>::value) { // Kolla om struct T är definierad i
-                                         // reflect<>
-    forInTuple(
-        reflect<T>::fields, // Felar här
-        [&](const auto
-                &field) { // Loopa över reflect structens field (tupel). Denna
-                          // {} är F = && function() med en lambda funktion
-          const auto &[name, ptr] = field;
-          const auto &value = obj.*ptr;
+  if constexpr (reflectable<DecayedT>::value) {
+    forInTuple(reflect<DecayedT>::fields, [&](const auto &field) {
+      const auto &[name, ptr] = field;
+      const auto &value = obj.*ptr;
 
-          if constexpr (reflectable<std::decay_t<decltype(value)>>::
-                            value) // Om value är definerad i reflect<> så kalla
-                                   // funktionen rekursivt
-            json[name] = structToJson(
-                value); // Kör funktionen för value och sätt in det i json
-          else
-            json[name] = value;
-        });
+      using FieldT = std::decay_t<decltype(value)>;
+      // Message & request
+      if constexpr (reflectable<FieldT>::value) {
+        json[name] = structToJson(value);
+        // Ta hand om vector<message>
+      } else if constexpr (is_same_v<FieldT, std::vector<message>>) {
+        Json::Value arr(Json::arrayValue);
+        for (const auto &msg : value) {
+          arr.append(structToJson(msg));
+        }
+        json[name] = arr;
+      } else {
+        json[name] = value;
+      }
+    });
   } else {
-    static_assert(reflectable<T>::value,
-                  "Type not reflectable. Cannot convert to JSON");
+    static_assert(reflectable<DecayedT>::value,
+                  "Type not convertable. Cannot convert to JSON");
   }
 
   return json;
@@ -138,14 +144,13 @@ private:
   message systemMsg;
   string model;
   string toolChoice;
-  Json::Value tools;
+  // vector<Json::Value> tools;
   vector<message> history;
 
   // env & nät grejs
   string apiUrl;
   string token;
 
-  Json::Value resBodyToJson(string str);
   message getResMessage(Json::Value res);
   void addHistory(message msg);
   void fetchConfig();
