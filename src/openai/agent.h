@@ -3,9 +3,11 @@
 #include "../utils/configHandler.h"
 #include "../utils/env/envParser.h"
 #include "../utils/web/webUtils.h"
+#include <cstddef>
 #include <jsoncpp/json/json.h>
 #include <jsoncpp/json/value.h>
 #include <string>
+#include <tuple>
 #include <type_traits>
 #include <vector>
 
@@ -41,11 +43,10 @@ template <> struct reflect<request> {
       make_pair("tool_choice", &T::tool_choice));
 };
 
-template <typename T>
-using hasReflect = decltype(reflect<T>::fields,
-                            void()); // Testa läsa typen på reflect::field. Om
-                                     // definierad: decltype lyckas; -> void
-                                     // Annars
+template <typename T> using hasReflect = decltype(reflect<T>::fields, void());
+// Testa läsa typen på reflect::field. Om
+// definierad: decltype lyckas; -> void
+// Annars
 
 template <typename T> struct reflectable {
   static constexpr bool value =
@@ -54,25 +55,72 @@ template <typename T> struct reflectable {
                        // misslyckas kommer is_same ge false.
 };
 
+// compile time loop för att iterera över tupel element, F = &&function()
+// -lambda
+template <typename Tuple, typename F,
+          size_t... I> // size_t... I ; Compile time list från 0 -> I
+void elementsInTuple(
+    Tuple &&t, F &&f,
+    index_sequence<I...>) { // && ; referens till rvalue. Tillåter referens till
+                            // !temporärt! värde i scope utan att kopiera det.
+                            // Krävs då compile time object och värden är
+                            // temporära.
+  (f(get<I>(forward<Tuple>(t))), ...); // snusk
+  // f() = funktion
+  // get<I>(forward<Tuple>(t)) greppa element I från forward<Tuple>(t).
+  // forward<>() ger && referens till ett värde. I detta fall Tupeln
+  // ,... = fold expression. Kommer att kalla f() för varje element i Tupeln
+  // Alltså: f(get<0>(t)), f(get<1>(t)), f(get<2>(t))... ger alltså alla
+  // key:value i tupeln efter varann. Varje field i fields.
+}
+
+// Räknar du många gånger elementsInTuple kör och skapar lista med hjälp av
+// make_index_sequence<>
+template <typename Tuple, typename F> // F = &&function()
+void forInTuple(Tuple &&t, F &&f) {
+  constexpr auto size = tuple_size<remove_reference_t<Tuple>>::
+      value; // Storleken av tupeln Tuple. remove_reference_t<> ger typen av
+             // tupeln oavsett om den angess som värde, & eller &&
+  elementsInTuple(
+      forward<Tuple>(t), forward<F>(f),
+      make_index_sequence<size>{}); // kör elementsInTuple med Tupeln och
+                                    // funktionen. I anges som
+                                    // make_index_sequence<size>{}, alltså skapa
+                                    // en lista med index från 0 -> size
+  // index_sequenxe<I...> I elementsInTuple blir alltså:
+  // index_sequence<make_index_sequence<size>{}> make_index_sequence<size>{}
+  // evalueras till <0,...size-1> alltså lista av korrekt längd forward<F>(f)
+  // ger &&function, alltså rvalue
+}
+
 // struct -> json genom att rekursera genom nested structs. Kan bara ta structs
 // definierade i reflect<>
 template <typename T> Json::Value structToJson(T &obj) {
   Json::Value json;
 
-  // Kolla om structen har en definerad reflect template
-  if constexpr (reflectable<T>::value) {
-    for (const auto &[name, ptr] : reflect<T>::fields) {
-      const auto &value = obj.*ptr;
-      // Kolla om värdet i template tupeln har en reflect spec
-      if constexpr (reflectable<decay_t<decltype(value)>>::value)
-        json[name] = structToJson(value); // Kalla funktion igen
-      else
-        json[name] = value;
-    }
+  if constexpr (reflectable<T>::value) { // Kolla om struct T är definierad i
+                                         // reflect<>
+    forInTuple(
+        reflect<T>::fields, // Felar här
+        [&](const auto
+                &field) { // Loopa över reflect structens field (tupel). Denna
+                          // {} är F = && function() med en lambda funktion
+          const auto &[name, ptr] = field;
+          const auto &value = obj.*ptr;
+
+          if constexpr (reflectable<std::decay_t<decltype(value)>>::
+                            value) // Om value är definerad i reflect<> så kalla
+                                   // funktionen rekursivt
+            json[name] = structToJson(
+                value); // Kör funktionen för value och sätt in det i json
+          else
+            json[name] = value;
+        });
   } else {
     static_assert(reflectable<T>::value,
                   "Type not reflectable. Cannot convert to JSON");
   }
+
   return json;
 }
 
@@ -86,7 +134,7 @@ class Agent {
 private:
   CurlPost crl;
   int maxTokens;
-  int maxHistory;
+  size_t maxHistory;
   message systemMsg;
   string model;
   string toolChoice;
