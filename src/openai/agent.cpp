@@ -78,8 +78,10 @@ Json::Value Agent::query(message msg) {
   // Post
   vector<string> headers = {"Content-Type: application/json",
                             "Authorization: Bearer " + token};
-  string body = Json::FastWriter().write(
-      structToJson(req)); // Denna fungerar bara för structs i reflect<>
+  string body = Json::FastWriter().write(structToJson(req));
+  // Print body
+  cout << body << endl;
+
   string response = crl.post(apiUrl, headers, body);
   Json::Value jsonRes = resBodyToJson(response);
 
