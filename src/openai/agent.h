@@ -10,6 +10,8 @@
 #include <tuple>
 #include <type_traits>
 #include <vector>
+#include <cxxabi.h>
+#include <memory>
 
 using namespace std;
 
@@ -23,7 +25,7 @@ struct request {
   int max_tokens;
   vector<message> messages;
   // vector<Json::Value> tools; /*[{}]*/
-  string tool_choice;
+  //string tool_choice;
 };
 
 // structs to relfect message and request
@@ -41,8 +43,9 @@ template <> struct reflect<request> {
   static constexpr auto fields = make_tuple(
       make_pair("model", &T::model),
       make_pair("max_tokens", &T::max_tokens),
-      // make_pair("messages", &T::messages), make_pair("tools", &T::tools),
-      make_pair("tool_choice", &T::tool_choice));
+      //make_pair("tools", &T::tools),
+      //make_pair("tool_choice", &T::tool_choice,
+      make_pair("messages", &T::messages)); 
 };
 
 template <typename T, typename = void> struct hasReflect : false_type {};
@@ -99,24 +102,40 @@ void forInTuple(Tuple &&t, F &&f) { // Lambda, returnerar size
 // struct -> json genom att rekursera genom nested structs. Kan bara ta structs
 // definierade i reflect<>
 
+// Debug
+template <typename T>
+void printType() {
+    const char* mangled = typeid(std::decay_t<T>).name();
+    int status = 0;
+    std::unique_ptr<char[], void(*)(void*)> demangled(
+        abi::__cxa_demangle(mangled, nullptr, nullptr, &status),
+        std::free
+    );
+
+    std::cout << (status == 0 ? demangled.get() : mangled) << std::endl;
+}
+
 // Default  för structToJson för primitiva värden
 // Kan inte ta vector<struct>, struct<vector<struct>> funkar
+inline int recursionCounter = -1; //Debug
 template <typename T> Json::Value structToJson(T &&obj) {
   using structType = decay_t<T>; // macro för T typ
   Json::Value json;
+  recursionCounter++; // Debug
 
   if constexpr (reflectable<structType>::value) {
-    cout << "processing reflectable value" << endl;
     forInTuple(reflect<structType>::fields, [&](const auto &field) { // & -> [capture] = scope
       const auto &[name, ptr] = field;
       const auto &value = obj.*ptr;
 
       using valType = decay_t<decltype(value)>; // För att undvika referenser till const variable
-      cout << "Pair: " << name << " : " << value << " Type: " << endl;
+      //cout << "Pair: " << name << " : " << " Type: ";
+      //printType<decltype(value)>();
+      
       // Om value är en till struct 
       if constexpr (reflectable<valType>::value) {
         json[name] = structToJson(value);
-        cout << "Added: " << name << " = " << value << endl; 
+        //cout << "Added: " << name << " = " << value << endl; 
 
         // Om value är en vector
       } else if constexpr (is_vector<valType>::value) {
@@ -125,10 +144,12 @@ template <typename T> Json::Value structToJson(T &&obj) {
             using elementType = decay_t<decltype(item)>; // Type av item, decay decltype av anledningen att iteratorn är en const referens till elementet
             if constexpr (reflectable<elementType>::value) {
               elements.append(structToJson(item)); // Om structens element också är en struct.
-              cout << "Added: " << name << " = " << value << endl;
+              //cout << "Added: " << name << " Type: ";
+              //printType<decltype(item)>();
             } else {
                 elements.append(structToJson(item)); // Om inte
-                cout << "Added: " << name << " = " << value << endl;
+                //cout << "Added: " << name << " Type: ";
+                //printType<decltype(item)>();
               }
         }
         json[name] = elements; // elements = vectorns innehåll som Json::Value
@@ -170,14 +191,13 @@ private:
   string token;
 
   Json::Value resBodyToJson(string str);
-  message getResMessage(Json::Value res);
   void addHistory(message msg);
   void fetchConfig();
 
 public:
   Agent(message sysMsg, bool useTools, string tool_choice = "none");
   ~Agent();
-
+  message getResMessage(const Json::Value& res);
   Json::Value query(message msg);
 };
 

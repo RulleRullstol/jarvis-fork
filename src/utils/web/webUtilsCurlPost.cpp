@@ -42,6 +42,7 @@ string CurlPost::post(const string &url, const vector<string> &headers,
                       const string &body) {
   if (!curl)
     throw runtime_error("CURL is not initialized"); // I fall man missat
+  response.clear();
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
   setHeaders(headers);
   setBody(body);

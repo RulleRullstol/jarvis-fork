@@ -4,14 +4,13 @@
 Agent::Agent(message sysMsg, bool useTools, string tool_choice) {
   fetchConfig();
   systemMsg = sysMsg;
-  /*
     if (useTools) {
-      toolChoice = tool_choice;
+      toolChoice = "none";
       // tools;
     } else {
       toolChoice = "none";
       // tools;
-    }*/
+    }
 }
 
 Agent::~Agent() { return; }
@@ -31,9 +30,11 @@ void Agent::fetchConfig() {
 }
 
 void Agent::addHistory(message msg) {
-  if (history.size() >= maxHistory)
-    history.erase(history.begin());
-  history.push_back(msg);
+  if (!msg.content.empty()) {
+    while (history.size() >= maxHistory)
+      history.erase(history.begin());
+    history.insert(history.end(), msg);
+  }
 }
 
 // str -> Json
@@ -50,16 +51,29 @@ Json::Value Agent::resBodyToJson(string str) {
   return strJson;
 }
 
-message Agent::getResMessage(Json::Value res) {
+message Agent::getResMessage(const Json::Value& res) {
   message msg;
-  try {
-    msg.role = res["choices"][0]["message"]["role"].asString();
-    msg.content = res["choices"][0]["message"]["content"].asString();
-  } catch (const exception &e) {
-    cout << "Error while parsing message from response: " << e.what() << endl;
+
+  if (!res.isMember("choices") || !res["choices"].isArray() || res["choices"].empty()) {
+    cerr << "Warning: No choices array in response." << endl;
+    return msg;
   }
+
+  const Json::Value& choices = res["choices"];
+  const Json::Value& latest = choices[choices.size() -1];
+  if (!latest.isMember("message") || !latest["message"].isObject()) {
+    cerr << "Warning: No message object in choice." << endl;
+    return msg;
+  }
+
+  const Json::Value& messageObj = latest["message"];
+  msg.role = messageObj.get("role", "").asString();
+  msg.content = messageObj.get("content", "").asString();
+
   return msg;
 }
+
+
 
 // req -> CurlPost. Retrunerar tom Json om nåt gått snett
 Json::Value Agent::query(message msg) {
@@ -68,27 +82,26 @@ Json::Value Agent::query(message msg) {
   request req;
   req.model = model;
   req.max_tokens = maxTokens;
-  req.tool_choice = toolChoice;
+  //req.tool_choice = toolChoice;
 
-  // meddelanden & tools
-  req.messages = history;
+  req.messages.clear();
   req.messages.push_back(systemMsg);
+  req.messages.insert(req.messages.end(), history.begin(), history.end());
   //req.tools = tools;
-
-  cout << "Messages size: " << req.messages.size() << endl;
 
   // Post
   vector<string> headers = {"Content-Type: application/json",
                             "Authorization: Bearer " + token};
-  string body = Json::FastWriter().write(structToJson(req)); 
-  // Print body
-  cout << "Body: " << body << endl;
+  recursionCounter = -1; // Debug
+  string body = Json::FastWriter().write(structToJson(req));
 
+  //cout << "Debug: Recursion counter = " << recursionCounter << endl;
   string response = crl.post(apiUrl, headers, body);
   Json::Value jsonRes = resBodyToJson(response);
-
+  // Debug
+  message resMsg = getResMessage(jsonRes);
   // Stoppa in svar i history
-  history.push_back(getResMessage(jsonRes));
+  addHistory(resMsg);
 
   return jsonRes;
 }
