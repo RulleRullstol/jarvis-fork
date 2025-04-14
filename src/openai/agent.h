@@ -112,20 +112,24 @@ template <typename T> Json::Value structToJson(T &&obj) {
       const auto &value = obj.*ptr;
 
       using valType = decay_t<decltype(value)>; // För att undvika referenser till const variable
-
+      cout << "Pair: " << name << " : " << value << " Type: " << endl;
       // Om value är en till struct 
       if constexpr (reflectable<valType>::value) {
         json[name] = structToJson(value);
+        cout << "Added: " << name << " = " << value << endl; 
 
         // Om value är en vector
       } else if constexpr (is_vector<valType>::value) {
           Json::Value elements(Json::arrayValue);
           for (const auto &item : value) {
             using elementType = decay_t<decltype(item)>; // Type av item, decay decltype av anledningen att iteratorn är en const referens till elementet
-            if constexpr (reflectable<elementType>::value)
+            if constexpr (reflectable<elementType>::value) {
               elements.append(structToJson(item)); // Om structens element också är en struct.
-            else
-              elements.append(structToJson(item)); // Om inte
+              cout << "Added: " << name << " = " << value << endl;
+            } else {
+                elements.append(structToJson(item)); // Om inte
+                cout << "Added: " << name << " = " << value << endl;
+              }
         }
         json[name] = elements; // elements = vectorns innehåll som Json::Value
       } else {
