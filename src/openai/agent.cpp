@@ -37,7 +37,7 @@ void Agent::addHistory(message msg) {
 }
 
 // str -> Json
-Json::Value resBodyToJson(string str) {
+Json::Value Agent::resBodyToJson(string str) {
   Json::Value strJson;
   Json::CharReaderBuilder reader;
   string errs;
@@ -73,14 +73,16 @@ Json::Value Agent::query(message msg) {
   // meddelanden & tools
   req.messages = history;
   req.messages.push_back(systemMsg);
-  // req.tools = tools;
+  //req.tools = tools;
+
+  cout << "Messages size: " << req.messages.size() << endl;
 
   // Post
   vector<string> headers = {"Content-Type: application/json",
                             "Authorization: Bearer " + token};
-  string body = Json::FastWriter().write(structToJson(req));
+  string body = Json::FastWriter().write(structToJson(req)); 
   // Print body
-  cout << body << endl;
+  cout << "Body: " << body << endl;
 
   string response = crl.post(apiUrl, headers, body);
   Json::Value jsonRes = resBodyToJson(response);

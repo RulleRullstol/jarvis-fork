@@ -54,17 +54,17 @@ struct hasReflect<T, std::void_t<decltype(reflect<std::decay_t<T>>::fields)>>: s
 template <typename T> struct reflectable {
   static constexpr bool value = hasReflect<T>::value;
 };
+// Default
+template<typename T> 
+struct is_vector : false_type {};
 
-template <typename T, template <typename...> class Template>
-struct is_specialization_of : std::false_type {};
-
-template <template <typename...> class Template, typename... Args>
-struct is_specialization_of<Template<Args...>, Template> : std::true_type {};
+template<typename T,  typename Alloc>
+struct is_vector<vector<T, Alloc>> : true_type {}; // True för typer av vector<> av alla typer med en allocator för att en vector<> egentligen defineras som ex vector<int, allocator<int>> där allocator<int> är instans av "Alloc" klassen
 
 // compile time loop för att iterera över tupel element, F = &&function()
 // -lambda
 template <typename Tuple, typename F,size_t... I> // size_t... I ; Compile time list från 0 -> I
-void elementsInTuple(Tuple &&t, F &&f, index_sequence<I...>) {
+void elementsInTuple(Tuple &&t, F &&f, index_sequence<I...>) { //Lambda, returnerar key/value
   (f(get<I>(forward<Tuple>(t))), ...);
   // && ; referens till rvalue. Tillåter referens till
   // !temporärt! värde i scope utan att kopiera det.
@@ -81,7 +81,7 @@ void elementsInTuple(Tuple &&t, F &&f, index_sequence<I...>) {
 // Räknar du många gånger elementsInTuple kör och skapar lista med hjälp av
 // make_index_sequence<>
 template <typename Tuple, typename F> // F = &&function()
-void forInTuple(Tuple &&t, F &&f) {
+void forInTuple(Tuple &&t, F &&f) { // Lambda, returnerar size
   constexpr auto size = tuple_size<remove_reference_t<Tuple>>::value;
   // Storleken av tupeln Tuple. remove_reference_t<> ger typen av
   // tupeln oavsett om den angess som värde, & eller &&
@@ -98,35 +98,43 @@ void forInTuple(Tuple &&t, F &&f) {
 
 // struct -> json genom att rekursera genom nested structs. Kan bara ta structs
 // definierade i reflect<>
+
+// Default  för structToJson för primitiva värden
+// Kan inte ta vector<struct>, struct<vector<struct>> funkar
 template <typename T> Json::Value structToJson(T &&obj) {
-  using DecayedT = std::decay_t<T>;
+  using structType = decay_t<T>; // macro för T typ
   Json::Value json;
 
-  if constexpr (reflectable<DecayedT>::value) {
-    forInTuple(reflect<DecayedT>::fields, [&](const auto &field) {
+  if constexpr (reflectable<structType>::value) {
+    cout << "processing reflectable value" << endl;
+    forInTuple(reflect<structType>::fields, [&](const auto &field) { // & -> [capture] = scope
       const auto &[name, ptr] = field;
       const auto &value = obj.*ptr;
 
-      using FieldT = std::decay_t<decltype(value)>;
+      using valType = decay_t<decltype(value)>; // För att undvika referenser till const variable
 
-      // standard structs
-      if constexpr (reflectable<FieldT>::value) {
+      // Om value är en till struct 
+      if constexpr (reflectable<valType>::value) {
         json[name] = structToJson(value);
 
-        // vector
-      } else if constexpr (is_specialization_of<FieldT, std::vector>::value) {
-          Json::Value arr(Json::arrayValue);
+        // Om value är en vector
+      } else if constexpr (is_vector<valType>::value) {
+          Json::Value elements(Json::arrayValue);
           for (const auto &item : value) {
-          arr.append(structToJson(item));
+            using elementType = decay_t<decltype(item)>; // Type av item, decay decltype av anledningen att iteratorn är en const referens till elementet
+            if constexpr (reflectable<elementType>::value)
+              elements.append(structToJson(item)); // Om structens element också är en struct.
+            else
+              elements.append(structToJson(item)); // Om inte
         }
-        json[name] = arr;
+        json[name] = elements; // elements = vectorns innehåll som Json::Value
       } else {
           json[name] = value;
       }
     });
   } else {
-    static_assert(reflectable<DecayedT>::value,"Type not convertable. Cannot convert to JSON");
-  }
+    static_assert(reflectable<structType>::value,"Type not reflectable. Cannot convert to JSON");
+    }
   return json;
 }
 
@@ -157,6 +165,7 @@ private:
   string apiUrl;
   string token;
 
+  Json::Value resBodyToJson(string str);
   message getResMessage(Json::Value res);
   void addHistory(message msg);
   void fetchConfig();
