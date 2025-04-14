@@ -1,7 +1,7 @@
 # Compilers and flags
 CXX = clang++
 CC = clang
-CXXFLAGS = -std=c++23 -Wall -Wextra -pedantic -O2
+CXXFLAGS = -std=c++23 -Wall -Wextra -pedantic -O2 --debug
 CFLAGS = -std=c17 -Wall -Wextra -pedantic -O2
 LDFLAGS = -lcurl -ljsoncpp
 
