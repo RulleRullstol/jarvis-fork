@@ -1,7 +1,11 @@
-#include <string>
 #include "../obj/lightRequest.h"
 #include "configHandler.h"
+#include "web/webUtils.h"
+#include <array>
 #include <iostream>
+#include <string>
+
+using namespace std;
 
 void setLigts(LightRequest lr);
-bool validateList(LightRequest lr);
+array<bool, 3> validateList(LightRequest lr, string l);

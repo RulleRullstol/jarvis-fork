@@ -17,6 +17,8 @@ public:
   std::string getValue(const std::string &section, const std::string &key);
   std::vector<std::string> getLights();
   std::vector<std::string> findSections(const std::string &name);
+  std::string getHAUrl();
+  std::string getHAToken();
 };
 
 #endif

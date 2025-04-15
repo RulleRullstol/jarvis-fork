@@ -1,4 +1,6 @@
 #include "openai/agent.h"
+#include "utils/lightHandler.h"
+#include <array>
 #include <iostream>
 #include <string>
 
@@ -8,12 +10,13 @@ int main() {
   // System msg
   message sysMsg;
   sysMsg.role = "system";
-  sysMsg.content = "You are Jarivs a helpful assistant. Refer to the user as Sir!";
+  sysMsg.content =
+      "You are Jarivs a helpful assistant. Refer to the user as Sir!";
 
   // Skapa agent
   Agent agent(sysMsg, false);
 
-while (true) {
+  while (true) {
     string input;
     message usrMsg;
     usrMsg.role = "user";
@@ -29,9 +32,21 @@ while (true) {
     cout << "Assistant: " << reply << endl;
 
     // Add a break condition if you want to stop the loop, like:
-    if (input == "exit") break;
-}
+    if (input == "exit")
+      break;
+  }
 
+  LightRequest *l;
+  l->brightness = 155;
+  l->state = true;
+
+  array<int, 3> rgb = {255, 0, 0};
+
+  l->rgb = rgb;
+
+  l->id = "light.hall";
+
+  setLigts(*l);
 
   return 0;
 };

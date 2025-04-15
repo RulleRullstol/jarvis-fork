@@ -42,3 +42,11 @@ vector<string> ConfigHandler::findSections(const string &name) {
   }
   return foundSecs;
 }
+
+string ConfigHandler::getHAUrl() {
+  return getValue("home_assistant_settings", "url");
+}
+
+string ConfigHandler::getHAToken() {
+  return "Bearer" + getValue("home_assistant_settings", "token");
+}
