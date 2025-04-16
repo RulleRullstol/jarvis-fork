@@ -2,8 +2,10 @@
 #define TOOLS_H
 #include <functional>
 #include <jsoncpp/json/json.h>
+#include <jsoncpp/json/reader.h>
 #include <jsoncpp/json/value.h>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <unordered_map>
@@ -12,6 +14,20 @@
 #include "../../obj/lightRequest.h"
 
 using namespace std;
+
+Json::Value strToJson(string jsonStr) {
+  Json::CharReaderBuilder builder;
+  Json::Value json;
+  string errs;
+
+  istringstream stream(jsonStr);
+  if (!Json::parseFromStream(builder, stream, &json, &errs)) {
+    cerr << "Error Parsing JSON" << errs << endl;
+  }
+  return json;
+}
+
+
 
 class Tools {
 private:
@@ -38,6 +54,7 @@ private:
   };
   public:
   void callFunction(Json::Value toolCalls);
+  static Json::Value getToolDef();
 };
 
 #endif
