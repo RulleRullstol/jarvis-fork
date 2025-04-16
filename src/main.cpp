@@ -13,6 +13,18 @@ int main() {
   sysMsg.content =
       "You are Jarivs a helpful assistant. Refer to the user as Sir!";
 
+  LightRequest *l;
+  l->brightness = 155;
+  l->state = true;
+
+  array<int, 3> rgb = {255, 0, 0};
+
+  l->rgb = rgb;
+
+  l->id = "light.hall";
+  cout << "hej" << endl;
+  setLigts(*l);
+
   // Skapa agent
   Agent agent(sysMsg, false);
 
@@ -35,18 +47,6 @@ int main() {
     if (input == "exit")
       break;
   }
-
-  LightRequest *l;
-  l->brightness = 155;
-  l->state = true;
-
-  array<int, 3> rgb = {255, 0, 0};
-
-  l->rgb = rgb;
-
-  l->id = "light.hall";
-
-  setLigts(*l);
 
   return 0;
 };

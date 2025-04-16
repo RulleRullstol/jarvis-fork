@@ -8,4 +8,4 @@
 using namespace std;
 
 void setLigts(LightRequest lr);
-array<bool, 3> validateList(LightRequest lr, string l);
+array<bool, 3> validateList(LightRequest &lr, string &l);

@@ -47,7 +47,6 @@ array<bool, 3> validateList(LightRequest &lr, string &l) {
 
 void setLigts(LightRequest &lr) {
   string l = "";
-  validateList(lr, "");
   array<bool, 3> validation = validateList(lr, l);
   if (validation[0] == false)
     return;
