@@ -48,5 +48,5 @@ string ConfigHandler::getHAUrl() {
 }
 
 string ConfigHandler::getHAToken() {
-  return "Bearer" + getValue("home_assistant_settings", "token");
+  return "Bearer " + getValue("home_assistant_settings", "token");
 }

@@ -12,18 +12,19 @@ int main() {
   sysMsg.role = "system";
   sysMsg.content =
       "You are Jarivs a helpful assistant. Refer to the user as Sir!";
+  cout << "test" << endl;
+  LightRequest l;
+  l.brightness = 255;
+  l.state = true;
 
-  LightRequest *l;
-  l->brightness = 155;
-  l->state = true;
-
+  cout << "test2" << endl;
   array<int, 3> rgb = {255, 0, 0};
 
-  l->rgb = rgb;
+  l.rgb = rgb;
 
-  l->id = "light.hall";
+  l.id = "light.hall";
   cout << "hej" << endl;
-  setLigts(*l);
+  setLights(l);
 
   // Skapa agent
   Agent agent(sysMsg, false);
@@ -49,4 +50,4 @@ int main() {
   }
 
   return 0;
-};
+}

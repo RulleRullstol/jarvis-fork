@@ -45,7 +45,7 @@ array<bool, 3> validateList(LightRequest &lr, string &l) {
   return {id, brightness, color};
 }
 
-void setLigts(LightRequest &lr) {
+void setLights(LightRequest &lr) {
   string l = "";
   array<bool, 3> validation = validateList(lr, l);
   if (validation[0] == false)
@@ -60,18 +60,23 @@ void setLigts(LightRequest &lr) {
 
   if (lr.state) {
     if (validation[1])
-      payload["brightness"] = lr.brightness;
+      payload["brightness"] = to_string(lr.brightness);
 
     Json::Value rgbArray(Json::arrayValue);
     if (validation[2]) {
       for (int i = 0; i <= 2; i++) {
-        rgbArray.append(lr.rgb[i]);
+        rgbArray.append(to_string(lr.rgb[i]));
       }
+      payload["rgb_color"] = rgbArray;
     }
 
     string url = ch.getHAUrl() + ch.getValue(l, "uri_on");
 
     string pl = jsonToString(payload, false);
+    cout << headers[0] << endl
+         << headers[1] << endl
+         << url << endl
+         << pl << endl;
 
     string debug = cp.post(url, headers, pl);
 
