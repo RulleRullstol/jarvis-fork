@@ -19,6 +19,9 @@ public:
   std::vector<std::string> findSections(const std::string &name);
   std::string getHAUrl();
   std::string getHAToken();
+  std::string getStandardEmail();
+  std::string getEmailPswd();
+  std::string getGender();
 };
 
 #endif

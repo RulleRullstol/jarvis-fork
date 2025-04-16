@@ -45,49 +45,51 @@ array<bool, 3> validateList(LightRequest &lr, string &l) {
   return {id, brightness, color};
 }
 
-void setLights(LightRequest &lr) {
-  string l = "";
-  array<bool, 3> validation = validateList(lr, l);
-  if (validation[0] == false)
-    return;
+void setLights(vector<LightRequest> &lrV) {
+  for (LightRequest lr : lrV) {
+    string l = "";
+    array<bool, 3> validation = validateList(lr, l);
+    if (validation[0] == false)
+      return;
 
-  Json::Value payload;
+    Json::Value payload;
 
-  payload["entity_id"] = lr.id;
+    payload["entity_id"] = lr.id;
 
-  vector<string> headers = {"Authorization: " + ch.getHAToken(),
-                            "content-type: application/json"};
+    vector<string> headers = {"Authorization: " + ch.getHAToken(),
+                              "content-type: application/json"};
 
-  if (lr.state) {
-    if (validation[1])
-      payload["brightness"] = to_string(lr.brightness);
+    if (lr.state) {
+      if (validation[1])
+        payload["brightness"] = to_string(lr.brightness);
 
-    Json::Value rgbArray(Json::arrayValue);
-    if (validation[2]) {
-      for (int i = 0; i <= 2; i++) {
-        rgbArray.append(to_string(lr.rgb[i]));
+      Json::Value rgbArray(Json::arrayValue);
+      if (validation[2]) {
+        for (int i = 0; i <= 2; i++) {
+          rgbArray.append(to_string(lr.rgb[i]));
+        }
+        payload["rgb_color"] = rgbArray;
       }
-      payload["rgb_color"] = rgbArray;
+
+      string url = ch.getHAUrl() + ch.getValue(l, "uri_on");
+
+      string pl = jsonToString(payload, false);
+      cout << headers[0] << endl
+           << headers[1] << endl
+           << url << endl
+           << pl << endl;
+
+      string debug = cp.post(url, headers, pl);
+
+      cout << debug << endl;
+    } else {
+      string url = ch.getHAUrl() + ch.getValue(l, "uri_off");
+
+      string pl = jsonToString(payload, false);
+
+      string debug = cp.post(url, headers, pl);
+
+      cout << debug << endl;
     }
-
-    string url = ch.getHAUrl() + ch.getValue(l, "uri_on");
-
-    string pl = jsonToString(payload, false);
-    cout << headers[0] << endl
-         << headers[1] << endl
-         << url << endl
-         << pl << endl;
-
-    string debug = cp.post(url, headers, pl);
-
-    cout << debug << endl;
-  } else {
-    string url = ch.getHAUrl() + ch.getValue(l, "uri_off");
-
-    string pl = jsonToString(payload, false);
-
-    string debug = cp.post(url, headers, pl);
-
-    cout << debug << endl;
   }
 }

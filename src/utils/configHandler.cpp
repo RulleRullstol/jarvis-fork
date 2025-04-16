@@ -50,3 +50,9 @@ string ConfigHandler::getHAUrl() {
 string ConfigHandler::getHAToken() {
   return "Bearer " + getValue("home_assistant_settings", "token");
 }
+
+string ConfigHandler::getStandardEmail() { return getValue("email", "mail"); }
+
+string ConfigHandler::getEmailPswd() { return getValue("email", "apppwd"); }
+
+string ConfigHandler::getGender() { return getValue("personal", "gender"); }
