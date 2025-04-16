@@ -24,8 +24,8 @@ struct request {
   string model;
   int max_tokens;
   vector<message> messages;
-  // vector<Json::Value> tools; /*[{}]*/
-  //string tool_choice;
+  Json::Value tools; /*[{}]*/
+  string tool_choice;
 };
 
 // structs to relfect message and request
@@ -43,8 +43,8 @@ template <> struct reflect<request> {
   static constexpr auto fields = make_tuple(
       make_pair("model", &T::model),
       make_pair("max_tokens", &T::max_tokens),
-      //make_pair("tools", &T::tools),
-      //make_pair("tool_choice", &T::tool_choice,
+      make_pair("tools", &T::tools),
+      make_pair("tool_choice", &T::tool_choice),
       make_pair("messages", &T::messages)); 
 };
 
@@ -183,7 +183,8 @@ private:
   message systemMsg;
   string model;
   string toolChoice;
-  // vector<Json::Value> tools;
+  Json::Value tools;
+  bool useTools;
   vector<message> history;
 
   // env & nät grejs

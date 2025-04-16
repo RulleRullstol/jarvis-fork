@@ -1,11 +1,15 @@
 #include "agent.h"
+#include "tools/tools.h"
 
 // tool_choice = "none", "auto", "required"
 Agent::Agent(message sysMsg, bool useTools, string tool_choice) {
   fetchConfig();
   systemMsg = sysMsg;
+
+  useTools = useTools;
     if (useTools) {
-      toolChoice = "none";
+      toolChoice = "auto";
+      tools = Tools::getToolDef(); 
       // tools;
     } else {
       toolChoice = "none";
@@ -80,6 +84,7 @@ Json::Value Agent::query(message msg) {
   addHistory(msg);
   // Skapa requestt
   request req;
+
   req.model = model;
   req.max_tokens = maxTokens;
   //req.tool_choice = toolChoice;
@@ -93,7 +98,14 @@ Json::Value Agent::query(message msg) {
   vector<string> headers = {"Content-Type: application/json",
                             "Authorization: Bearer " + token};
   recursionCounter = -1; // Debug
-  string body = Json::FastWriter().write(structToJson(req));
+  Json:Json::Value reqJson = structToJson(req);
+  // Ananrs blir openai arg
+  if (!useTools) {
+    reqJson.removeMember("tools");
+    reqJson.removeMember("tool_choice");
+  }
+
+  string body = Json::FastWriter().write(reqJson);
 
   //cout << "Debug: Recursion counter = " << recursionCounter << endl;
   string response = crl.post(apiUrl, headers, body);
