@@ -57,6 +57,10 @@ Json::Value Agent::resBodyToJson(string str) {
 
 message Agent::getResMessage(const Json::Value& res) {
   message msg;
+  if (res.isMember("error")) {
+    cout << jsonToString(res, false) << endl; 
+  }
+
 
   if (!res.isMember("choices") || !res["choices"].isArray() || res["choices"].empty()) {
     cerr << "Warning: No choices array in response." << endl;
@@ -69,6 +73,10 @@ message Agent::getResMessage(const Json::Value& res) {
     cerr << "Warning: No message object in choice." << endl;
     return msg;
   }
+  
+  if (latest.isMember("tool_calls") && latest["tool_calls"].isArray()) {
+    runToolCalls(latest["tool_calls"]);
+  }
 
   const Json::Value& messageObj = latest["message"];
   msg.role = messageObj.get("role", "").asString();
@@ -77,6 +85,12 @@ message Agent::getResMessage(const Json::Value& res) {
   return msg;
 }
 
+void Agent::runToolCalls(Json::Value toolCalls) {
+  if (toolCalls.isArray()) {
+    Tools tools;
+    tools.callFunction(toolCalls);
+  }
+}
 
 
 // req -> CurlPost. Retrunerar tom Json om nåt gått snett
@@ -87,12 +101,12 @@ Json::Value Agent::query(message msg) {
 
   req.model = model;
   req.max_tokens = maxTokens;
-  //req.tool_choice = toolChoice;
+  req.tool_choice = toolChoice;
 
   req.messages.clear();
   req.messages.push_back(systemMsg);
   req.messages.insert(req.messages.end(), history.begin(), history.end());
-  //req.tools = tools;
+  req.tools = tools;
 
   // Post
   vector<string> headers = {"Content-Type: application/json",

@@ -15,7 +15,7 @@
 
 using namespace std;
 
-Json::Value strToJson(string jsonStr) {
+static Json::Value strToJson(string jsonStr) {
   Json::CharReaderBuilder builder;
   Json::Value json;
   string errs;

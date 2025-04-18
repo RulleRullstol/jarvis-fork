@@ -166,7 +166,7 @@ template <typename T> Json::Value structToJson(T &&obj) {
 static string jsonToString(const Json::Value &json, bool pretty) {
   if (pretty) {
     Json::StreamWriterBuilder builder;
-    builder["indentation"] = "4";
+    builder["indentation"] = " ";
     return Json::writeString(builder, json);
   } else {
       Json::StreamWriterBuilder builder;
@@ -191,6 +191,7 @@ private:
   string apiUrl;
   string token;
 
+  void runToolCalls(Json::Value toolCalls);
   Json::Value resBodyToJson(string str);
   void addHistory(message msg);
   void fetchConfig();

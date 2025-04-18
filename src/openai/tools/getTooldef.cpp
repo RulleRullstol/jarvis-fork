@@ -3,7 +3,7 @@
 
 Json::Value Tools::getToolDef() {
   string json = R"(
-    Json::Value toolDef = [{ "type": "function",
+    [{"type": "function",
         "function": {
             "name": "setLights",
             "description": "Sets the properties of lights.",
@@ -12,9 +12,9 @@ Json::Value Tools::getToolDef() {
                     "properties": {
                     "id": {
                         "type": "string",
-                        "description": "The id of the light to be altered. The available IDS are: LIGHT_NAMES" +
-                        "If no light is specified set id to 'all'." 
-                        "if the user specifies no particular color set the color value to none"
+                        "description": "The id of the light to be altered. The available IDS are: LIGHT_NAMES
+                         If no light is specified set id to 'all'. 
+                        if the user specifies no particular color set the color value to none"
                     },
                     "state": {
                         "type": "boolean",
@@ -44,8 +44,8 @@ Json::Value Tools::getToolDef() {
                     "properties": {
                     "id": {
                         "type": "string",
-                        "description": "The id of the manuals to be altered. The available IDS are: " + 
-                        MANUAL_NAMES + ". If no manual is specified set id to 'manual.full'."
+                        "description": "The id of the manuals to be altered. The available IDS are: 
+                        MANUAL_NAMES. If no manual is specified set id to 'manual.full'."
                     }
                 },
                 "required": ["id"]

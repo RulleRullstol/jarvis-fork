@@ -6,7 +6,7 @@
 #include <string>
 
 using namespace std;
-ConfigHandler ch = ConfigHandler();
+ConfigHandler mailConfig = ConfigHandler();
 
 void sendMail(const string &rec, const string &subj, const string &body,
               string &pdfPath) {
@@ -20,7 +20,7 @@ void sendMail(const string &rec, const string &subj, const string &body,
   curl_easy_setopt(curl, CURLOPT_URL, "smtps://smtp.gmail.com:465");
   curl_easy_setopt(curl, CURLOPT_USE_SSL, (long)CURLUSESSL_ALL);
   curl_easy_setopt(curl, CURLOPT_USERNAME, sender.c_str());
-  curl_easy_setopt(curl, CURLOPT_PASSWORD, ch.getEmailPswd().c_str());
+  curl_easy_setopt(curl, CURLOPT_PASSWORD, mailConfig.getEmailPswd().c_str());
   curl_easy_setopt(curl, CURLOPT_MAIL_FROM, ("<" + sender + ">").c_str());
 
   recievers = curl_slist_append(nullptr, ("<" + rec + ">").c_str());
@@ -55,10 +55,10 @@ void sendMail(const string &rec, const string &subj, const string &body,
 }
 
 void sendManual() {
-  string res = ch.getStandardEmail();
+  string res = mailConfig.getStandardEmail();
   string subj = "Jarvis Help";
   string path = "../../res/jarvisLights.pdf";
-  string body = "Hello " + ch.getGender() +
+  string body = "Hello " + mailConfig.getGender() +
                 "\r\n\r\nI am here to help you understand me and how i "
                 "work.\r\nI have attatched a pdf file containing the user "
                 "manuel for my system. \r\n\r\nGood luck\r\n// Jarvis";

@@ -1,6 +1,5 @@
 #include "openai/agent.h"
 #include "utils/lightHandler.h"
-#include <array>
 #include <iostream>
 #include <string>
 
@@ -14,7 +13,7 @@ int main() {
                    "answers and refer to the user as Sir!";
 
   // Skapa agent
-  Agent agent(sysMsg, false);
+  Agent agent(sysMsg, true);
 
   while (true) {
     string input;
