@@ -46,6 +46,7 @@ array<bool, 3> validateList(LightRequest &lr, string &l) {
 }
 
 void setLights(vector<LightRequest> &lrV) {
+  cout << lrV[0].id << endl;
   for (LightRequest lr : lrV) {
     string l = "";
     array<bool, 3> validation = validateList(lr, l);
@@ -88,7 +89,6 @@ void setLights(vector<LightRequest> &lrV) {
       string pl = jsonToString(payload, false);
 
       string debug = cp.post(url, headers, pl);
-
       cout << debug << endl;
     }
   }

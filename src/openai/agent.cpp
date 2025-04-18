@@ -7,14 +7,14 @@ Agent::Agent(message sysMsg, bool useTools, string tool_choice) {
   systemMsg = sysMsg;
 
   useTools = useTools;
-    if (useTools) {
-      toolChoice = "auto";
-      tools = Tools::getToolDef(); 
-      // tools;
-    } else {
-      toolChoice = "none";
-      // tools;
-    }
+  if (useTools) {
+    toolChoice = "auto";
+    tools = Tools::getToolDef();
+    // tools;
+  } else {
+    toolChoice = "none";
+    // tools;
+  }
 }
 
 Agent::~Agent() { return; }
@@ -55,30 +55,31 @@ Json::Value Agent::resBodyToJson(string str) {
   return strJson;
 }
 
-message Agent::getResMessage(const Json::Value& res) {
+message Agent::getResMessage(const Json::Value &res) {
   message msg;
   if (res.isMember("error")) {
-    cout << jsonToString(res, false) << endl; 
+    cout << jsonToString(res, false) << endl;
   }
 
-
-  if (!res.isMember("choices") || !res["choices"].isArray() || res["choices"].empty()) {
+  if (!res.isMember("choices") || !res["choices"].isArray() ||
+      res["choices"].empty()) {
     cerr << "Warning: No choices array in response." << endl;
     return msg;
   }
 
-  const Json::Value& choices = res["choices"];
-  const Json::Value& latest = choices[choices.size() -1];
+  const Json::Value &choices = res["choices"];
+  const Json::Value &latest = choices[choices.size() - 1];
   if (!latest.isMember("message") || !latest["message"].isObject()) {
     cerr << "Warning: No message object in choice." << endl;
     return msg;
   }
-  
-  if (latest.isMember("tool_calls") && latest["tool_calls"].isArray()) {
-    runToolCalls(latest["tool_calls"]);
+
+  if (latest["message"].isMember("tool_calls") &&
+      latest["message"]["tool_calls"].isArray()) {
+    runToolCalls(latest["message"]["tool_calls"]);
   }
 
-  const Json::Value& messageObj = latest["message"];
+  const Json::Value &messageObj = latest["message"];
   msg.role = messageObj.get("role", "").asString();
   msg.content = messageObj.get("content", "").asString();
 
@@ -87,11 +88,10 @@ message Agent::getResMessage(const Json::Value& res) {
 
 void Agent::runToolCalls(Json::Value toolCalls) {
   if (toolCalls.isArray()) {
-    Tools tools;
+    Tools tools = Tools();
     tools.callFunction(toolCalls);
   }
 }
-
 
 // req -> CurlPost. Retrunerar tom Json om nåt gått snett
 Json::Value Agent::query(message msg) {
@@ -112,7 +112,7 @@ Json::Value Agent::query(message msg) {
   vector<string> headers = {"Content-Type: application/json",
                             "Authorization: Bearer " + token};
   recursionCounter = -1; // Debug
-  Json:Json::Value reqJson = structToJson(req);
+  Json::Value reqJson = structToJson(req);
   // Ananrs blir openai arg
   if (!useTools) {
     reqJson.removeMember("tools");
@@ -121,7 +121,7 @@ Json::Value Agent::query(message msg) {
 
   string body = Json::FastWriter().write(reqJson);
 
-  //cout << "Debug: Recursion counter = " << recursionCounter << endl;
+  // cout << "Debug: Recursion counter = " << recursionCounter << endl;
   string response = crl.post(apiUrl, headers, body);
   Json::Value jsonRes = resBodyToJson(response);
   // Debug
