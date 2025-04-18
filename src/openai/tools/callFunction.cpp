@@ -7,7 +7,9 @@ void Tools::callFunction(Json::Value toolCalls) {
     Json::Value args = call["function"]["arguments"];
 
     auto funcIt = functionMap.find(funcName);
-    if (funcIt != functionMap.end())
-      funcIt->second(args);
+    if (funcIt != functionMap.end()) {
+      Json::Value argsObj = strToJson(args.asString());
+      funcIt->second(argsObj);
+    }
   }
 };
