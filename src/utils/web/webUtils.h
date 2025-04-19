@@ -14,11 +14,8 @@ using namespace std;
 
 class CurlPost {
 private:
-  std::string response;
-  CURL *curl;
-
-  void setHeaders(const std::vector<std::string> &headers);
-  void setBody(const std::string &body);
+  void setHeaders(CURL *curl, const std::vector<std::string> &headers);
+  void setBody(CURL *curl, const std::string &body);
 
   static size_t writeCallback(void *contents, size_t size, size_t nmemb,
                               std::string *userp);

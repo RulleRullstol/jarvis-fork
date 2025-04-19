@@ -1,9 +1,12 @@
+#include "globals.h"
 #include "openai/agent.h"
 #include "utils/lightHandler.h"
 #include <iostream>
 #include <string>
 
 using namespace std;
+
+CurlPost globalCP;
 
 int main() {
   // System msg

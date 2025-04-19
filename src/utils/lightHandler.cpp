@@ -93,9 +93,5 @@ void setLights(vector<LightRequest> &lrV) {
     }
   }
 
-  for (auto lr : lrV) {
-    delete lr;
-  }
-
-  lrV.clear()
+  lrV.clear();
 }

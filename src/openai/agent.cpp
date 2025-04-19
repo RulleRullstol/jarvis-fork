@@ -1,4 +1,5 @@
 #include "agent.h"
+#include "../globals.h"
 #include "tools/tools.h"
 
 // tool_choice = "none", "auto", "required"
@@ -122,7 +123,7 @@ Json::Value Agent::query(message msg) {
   string body = Json::FastWriter().write(reqJson);
 
   // cout << "Debug: Recursion counter = " << recursionCounter << endl;
-  string response = crl.post(apiUrl, headers, body);
+  string response = globalCP.post(apiUrl, headers, body);
   Json::Value jsonRes = resBodyToJson(response);
   // Debug
   message resMsg = getResMessage(jsonRes);
