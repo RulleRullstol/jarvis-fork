@@ -14,8 +14,7 @@ void CurlPost::setBody(CURL *curl, const string &body) {
 }
 
 // callback function för att skriva till response. Spännande grunka
-size_t CurlPost::writeCallback(void *contents, size_t size, size_t nmemb,
-                               string *userp) { // userp är ptr till reponse
+size_t CurlPost::writeCallback(void *contents, size_t size, size_t nmemb, string *userp) { // userp är ptr till reponse
   size_t totalSize = size * nmemb;
   string *response = reinterpret_cast<string *>(userp); // userp->reponse
   response->append((char *)contents, totalSize);
@@ -30,8 +29,7 @@ CurlPost::CurlPost() { // init libcurl
 CurlPost::~CurlPost() { curl_global_cleanup(); }
 
 // Send POST/PUT. returns std::string response
-string CurlPost::post(const string &url, const vector<string> &headers,
-                      const string &body) {
+string CurlPost::post(const string &url, const vector<string> &headers, const string &body) {
   CURL *curl = curl_easy_init();
 
   string response;
@@ -42,16 +40,14 @@ string CurlPost::post(const string &url, const vector<string> &headers,
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
   setHeaders(curl, headers);
   setBody(curl, body);
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
-                   writeCallback); // Callback för server svar
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback); // Callback för server svar
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response); // Response -> userp
 
   // Skicka request
   CURLcode res = curl_easy_perform(curl);
   if (res != CURLE_OK) {
     curl_easy_cleanup(curl);
-    throw runtime_error("curl request failed: " +
-                        string(curl_easy_strerror(res)));
+    throw runtime_error("curl request failed: " + string(curl_easy_strerror(res)));
   }
 
   curl_easy_cleanup(curl);

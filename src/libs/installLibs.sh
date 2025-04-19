@@ -3,6 +3,7 @@
 PACKAGES=(
   libcurl4-openssl-dev
   libjsoncpp-dev
+  libasio-dev
 )
 
 echo Installing packages...
