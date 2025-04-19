@@ -2,6 +2,7 @@
 #define TOOLS_H
 #include "../../obj/lightRequest.h"
 #include "../../utils/lightHandler.h"
+#include "../../utils/mailHandler.h"
 #include "../agent.h"
 #include <functional>
 #include <jsoncpp/json/json.h>
@@ -33,7 +34,8 @@ class Tools {
 private:
   // map of functions. handling Json {args} => args
   unordered_map<string, function<void(const Json::Value &args)>> functionMap = {
-      {"setLights", [](const Json::Value &args) {
+      {"setLights",
+       [](const Json::Value &args) {
          vector<LightRequest> lrList;
 
          LightRequest lr;
@@ -49,6 +51,9 @@ private:
          lr.rgb = lrRgb;
          lrList.push_back(lr);
          thread([lrList]() { setLights(lrList); }).detach();
+       }},
+      {"sendManual", [](const Json::Value &args) {
+         thread([]() { sendManual(); }).detach();
        }}};
 
 public:

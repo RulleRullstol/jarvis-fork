@@ -9,11 +9,14 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include "../configHandler.h"
 
 using namespace std;
 
 class CurlPost {
 private:
+  ConfigHandler curlCH;
+
   void setHeaders(CURL *curl, const std::vector<std::string> &headers);
   void setBody(CURL *curl, const std::string &body);
 
@@ -27,6 +30,11 @@ public:
   std::string post(const std::string &url,
                    const std::vector<std::string> &headers,
                    const std::string &body);
+
+  void postMail(const std::string &rec,
+                const std::string &subj,
+                const std::string &body,
+                std::string &pdfPath);
 };
 
 #endif
