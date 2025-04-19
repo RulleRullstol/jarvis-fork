@@ -7,5 +7,5 @@
 
 using namespace std;
 
-void setLights(vector<LightRequest> &lrV);
+void setLights(vector<LightRequest> lrV);
 array<bool, 3> validateList(LightRequest &lr, string &l);

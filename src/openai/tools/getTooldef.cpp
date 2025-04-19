@@ -37,19 +37,8 @@ Json::Value Tools::getToolDef() {
         }
     }, {"type": "function",
         "function": {
-            "name": "getManual",
-            "description": "Sends a manual to the user via email",
-            "parameters": {
-                "type": "object",
-                    "properties": {
-                    "id": {
-                        "type": "string",
-                        "description": "The id of the manuals to be altered. The available IDS are: 
-                        MANUAL_NAMES. If no manual is specified set id to 'manual.full'."
-                    }
-                },
-                "required": ["id"]
-            }
+            "name": "sendManual",
+            "description": "Sends a manual to the user via email"
         }}];)";
   
   string lightNames;
