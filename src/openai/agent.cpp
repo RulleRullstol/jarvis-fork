@@ -74,7 +74,8 @@ message Agent::getResMessage(const Json::Value &res) {
     return msg;
   }
 
-  if (latest["message"].isMember("tool_calls") && latest["message"]["tool_calls"].isArray()) {
+  if (latest["message"].isMember("tool_calls") &&
+      latest["message"]["tool_calls"].isArray()) {
     runToolCalls(latest["message"]["tool_calls"]);
   }
 
@@ -127,6 +128,8 @@ Json::Value Agent::query(message msg) {
   message resMsg = getResMessage(jsonRes);
   // Stoppa in svar i history
   addHistory(resMsg);
+
+  cout << response << endl;
 
   return jsonRes;
 }

@@ -67,7 +67,7 @@ void setLights(vector<LightRequest> &lrV) {
       Json::Value rgbArray(Json::arrayValue);
       if (validation[2]) {
         for (int i = 0; i <= 2; i++) {
-          rgbArray.append(to_string(lr.rgb[i]));
+          rgbArray.append(lr.rgb[i]);
         }
         payload["rgb_color"] = rgbArray;
       }
