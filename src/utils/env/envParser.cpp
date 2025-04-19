@@ -1,12 +1,30 @@
 #include "envParser.h"
+#include <stdexcept>
 
 // env variabler i filen
 static unordered_map<string, string> envMap;
 
 static void loadEnvFile(const string &filename) {
-  ifstream envFile(filename);
+filesystem::path dir = filesystem::current_path();
+  cout << "Looking for: " << filename << endl;
+  string path;
+  while (path.empty()) {
+      for (const auto& entry : filesystem::recursive_directory_iterator(dir)) {
+        if (entry.path().filename() == filename) {
+          cout << "Found: " << entry.path() << endl;
+          path = entry.path().string();
+          break;
+        }
+      }
+      if (path.empty())
+        dir = dir.parent_path();
+    }
+  if (path.empty())
+    throw runtime_error("Could not load env file");
+
+  ifstream envFile(path);
   if (!envFile.is_open()) {
-    cerr << "Could not open the file " << filename << endl;
+    cerr << "Could not open the file " << path << endl;
     return;
   }
 

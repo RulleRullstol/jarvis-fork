@@ -52,7 +52,7 @@ private:
        }}};
 
 public:
-  void callFunction(Json::Value toolCalls);
+void callFunction(Json::Value toolCalls);
   static Json::Value getToolDef();
 };
 

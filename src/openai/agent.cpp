@@ -28,7 +28,7 @@ void Agent::fetchConfig() {
   apiUrl = conf.getValue("llm_settings", "api_url");
 
   // Greppa openAI token
-  token = getEnvValue("OPENAI_API_KEY", "../../includes/.env");
+  token = getEnvValue("OPENAI_API_KEY", ".env");
   if (!token.compare(""))
     cerr << "Agent failed to load API key" << endl;
 }
