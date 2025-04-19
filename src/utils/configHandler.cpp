@@ -1,14 +1,35 @@
 #include "configHandler.h"
+#include <filesystem>
 #include <iostream>
-#include <string>
+#include <stdexcept>
 
 using namespace std;
 
-ConfigHandler::ConfigHandler(const string &filename) : reader(filename) {
+ConfigHandler::ConfigHandler(const string &filename) : reader(getPath(filename)) {
   if (reader.ParseError() != 0) {
     cerr << "Error opening config.ini" << endl;
   } else
     cout << "Config file loaded successfully." << endl;
+}
+
+string ConfigHandler::getPath(const string &filename) {
+  string path;
+  filesystem::path dir = filesystem::current_path();
+  cout << "Looking for: " << filename << endl;
+  while (path.empty()) {
+    for (const auto& entry : filesystem::recursive_directory_iterator(dir)) {
+      if (entry.path().filename() == filename) {
+        cout << "Found: " << entry.path() << endl;
+        path = entry.path().string();
+        break;
+      }
+    }
+    if (path.empty())
+      dir = dir.parent_path();
+  }
+  if (path.empty())
+    throw runtime_error("Could not load config");
+  return path;
 }
 
 vector<string> ConfigHandler::getSections() { return reader.Sections(); }

@@ -92,6 +92,9 @@ void setLights(vector<LightRequest> &lrV) {
       cout << debug << endl;
     }
   }
+<<<<<<< HEAD
 
+=======
+>>>>>>> refs/remotes/origin/mainCPP
   lrV.clear();
 }
