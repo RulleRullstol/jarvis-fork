@@ -10,6 +10,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <tuple>
 #include <unordered_map>
 #include <vector>
@@ -47,12 +48,11 @@ private:
 
          lr.rgb = lrRgb;
          lrList.push_back(lr);
-
-         setLights(lrList);
+         thread([lrList]() { setLights(lrList); }).detach();
        }}};
 
 public:
-void callFunction(Json::Value toolCalls);
+  void callFunction(Json::Value toolCalls);
   static Json::Value getToolDef();
 };
 

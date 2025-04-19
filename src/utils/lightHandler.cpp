@@ -45,7 +45,7 @@ array<bool, 3> validateList(LightRequest &lr, string &l) {
   return {id, brightness, color};
 }
 
-void setLights(vector<LightRequest> &lrV) {
+void setLights(vector<LightRequest> lrV) {
   cout << lrV[0].id << endl;
   for (LightRequest lr : lrV) {
     string l = "";
@@ -92,9 +92,6 @@ void setLights(vector<LightRequest> &lrV) {
       cout << debug << endl;
     }
   }
-<<<<<<< HEAD
 
-=======
->>>>>>> refs/remotes/origin/mainCPP
   lrV.clear();
 }
