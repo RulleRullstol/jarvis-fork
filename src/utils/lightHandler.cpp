@@ -92,4 +92,10 @@ void setLights(vector<LightRequest> &lrV) {
       cout << debug << endl;
     }
   }
+
+  for (auto lr : lrV) {
+    delete lr;
+  }
+
+  lrV.clear()
 }
