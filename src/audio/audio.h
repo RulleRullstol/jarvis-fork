@@ -5,6 +5,8 @@
 #include <iostream>
 #include <cstring>
 #include <vector>
+#include <array>
+#include <deque>
 #include <asio.hpp>
 #include "../utils/configHandler.h"
 #include <string>
@@ -16,8 +18,7 @@ class UDPHandler {
 private:
   struct esp {
     string name;
-    string addr;
-    string port;
+    asio::ip::udp::endpoint endpoint;
     bool alive;
     int lastKeepAlive;
   };
@@ -25,14 +26,15 @@ private:
   vector<esp> esps;
 
   asio::io_context io_context;
-  string broadcastAddr;
-string broadcastPort;
 
-string getBroadcast();
-    
+  string broadcastAddr;
+  string broadcastPort;
+
+  string getBroadcast();
+
 public:
   UDPHandler();
   ~UDPHandler();
-  
+  void listenToESP(unsigned short port, deque<int16_t> &buffer); 
 };
 #endif
