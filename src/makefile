@@ -1,9 +1,9 @@
 # Compilers and flags
 CXX = clang++
 CC = clang
-CXXFLAGS = -std=c++23 -Wall -Wextra -pedantic -O2 --debug
+CXXFLAGS = -std=c++23 -Wall -Wextra -pedantic -O2 --debug -DASIO_STANDALONE -pthread
 CFLAGS = -std=c17 -Wall -Wextra -pedantic -O2
-LDFLAGS = -lcurl -ljsoncpp -lasio
+LDFLAGS = -lcurl -ljsoncpp -lpthread
 
 # Directories
 SRC_DIR := .
