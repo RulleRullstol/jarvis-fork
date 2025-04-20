@@ -149,7 +149,7 @@ void broadcast(WiFiUDP &udp) {
         Serial.printf("Packet Size Received: %d\n", packetSize);
 
         if (packetSize) {
-            int readBytes = udp.read(buffer, sizeof(buffer) - 1);
+            int readBytes = udp.read(buffer, sizeof(buffer) + 1);
             if (readBytes > 0) {
                 buffer[readBytes] = '\0';
                 rcvdMsg = String(buffer);

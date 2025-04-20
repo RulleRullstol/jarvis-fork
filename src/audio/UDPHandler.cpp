@@ -5,6 +5,7 @@
 UDPHandler::UDPHandler() {
   ConfigHandler conf;
   // Populate esps vector
+  int broadcastPort = stoi(conf.getValue("esp_general", "broadcast_port"));
   int targetEsps = stoi(conf.getValue("esp_general", "count"));
   int maxRetries = targetEsps * stoi(conf.getValue("esp_general", "max_retries"));
   int retries = 0;
@@ -20,7 +21,7 @@ UDPHandler::UDPHandler() {
   socket.open(asio::ip::udp::v4());
   socket.set_option(asio::socket_base::broadcast(true)); // allow broadcast
   socket.set_option(asio::socket_base::reuse_address(true));
-  socket.bind(asio::ip::udp::endpoint(asio::ip::udp::v4(), 0)); // Bind to all ports on all interfaces
+  socket.bind(asio::ip::udp::endpoint(asio::ip::udp::v4(), broadcastPort)); // Bind to all ports on all interfaces
 
   array<char, 256> recvBuffer; // 1024 is enough for ack 
   
@@ -34,7 +35,7 @@ UDPHandler::UDPHandler() {
     // Ta bort msgTemplate och rengöra 
     int pos = recvMsg.find(msgTemplate);
     if (pos != string::npos) {
-      recvMsg.erase(pos, msgTemplate.length());
+      recvMsg.erase(pos, (msgTemplate.length()));
 
       // Hitta spaces och \0 runt en string och göra en substring utan dem 
       int start = 0;
@@ -51,7 +52,7 @@ UDPHandler::UDPHandler() {
       int dividerPos = recvMsg.find(" "); // Hitta pos av divider mellan namn och port
       if (dividerPos != string::npos) {
         esp foundESP;
-        foundESP.name = recvMsg.substr(1, dividerPos); // Räkna med space mellan ord
+        foundESP.name = recvMsg.substr(0, dividerPos); // Räkna med space mellan ord
         foundESP.endpoint = recvEndpoint;
 
         // Stoppa in om inte finns
@@ -71,7 +72,6 @@ UDPHandler::UDPHandler() {
         array<char, 256> ackMsg;
         string tempStr = ackTemplate + " " + foundESP.name;
         copy_n(tempStr.begin(), min(tempStr.size(), ackMsg.size() - 1), ackMsg.begin()); // in med skiten i array
-        ackMsg[min(tempStr.size(), ackMsg.size() -1)] = '\0'; // Null termiantor
         socket.send_to(asio::buffer(ackMsg.data(), strlen(ackMsg.data())), recvEndpoint);
         cout << "ACK sent to: " << foundESP.name << " at: " << recvEndpoint.address() << ":" << recvEndpoint.port() << endl;
         retries++; // Increment retries
