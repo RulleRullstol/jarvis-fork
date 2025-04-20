@@ -8,11 +8,14 @@
 #include <array>
 #include <deque>
 #include <asio.hpp>
+#include <cstdint>
 #include "../utils/configHandler.h"
 #include <string>
 
 
 using namespace std;
+
+short misistt(vector<deque<int16_t>> &buffers);
 
 class UDPHandler {
 private:

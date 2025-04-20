@@ -2,10 +2,12 @@
 #include <filesystem>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 
 using namespace std;
 
-ConfigHandler::ConfigHandler(const string &filename) : reader(getPath(filename)) {
+ConfigHandler::ConfigHandler(const string &filename)
+    : reader(getPath(filename)) {
   if (reader.ParseError() != 0) {
     cerr << "Error opening config.ini" << endl;
   } else
@@ -17,7 +19,7 @@ string ConfigHandler::getPath(const string &filename) {
   filesystem::path dir = filesystem::current_path();
   cout << "Looking for: " << filename << endl;
   while (path.empty()) {
-    for (const auto& entry : filesystem::recursive_directory_iterator(dir)) {
+    for (const auto &entry : filesystem::recursive_directory_iterator(dir)) {
       if (entry.path().filename() == filename) {
         cout << "Found: " << entry.path() << endl;
         path = entry.path().string();
@@ -77,3 +79,7 @@ string ConfigHandler::getStandardEmail() { return getValue("email", "mail"); }
 string ConfigHandler::getEmailPswd() { return getValue("email", "apppwd"); }
 
 string ConfigHandler::getGender() { return getValue("personal", "gender"); }
+
+int ConfigHandler::getESPCount() {
+  return stoi(getValue("esp_general", "count"));
+}

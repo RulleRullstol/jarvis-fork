@@ -8,6 +8,7 @@
 using namespace std;
 
 CurlPost globalCP;
+ConfigHandler globalCH;
 
 int main() {
   // ESP test 
