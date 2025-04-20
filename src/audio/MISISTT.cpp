@@ -1,5 +1,6 @@
 
-#include "MISISTT.h"
+#include "audio.h"
+#include "../globals.h"
 #include <cmath>
  
 short misistt(vector<deque<int16_t>> &buffers) {
