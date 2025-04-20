@@ -25,6 +25,7 @@ public:
   std::string getStandardEmail();
   std::string getEmailPswd();
   std::string getGender();
+  int getESPCount();
 };
 
 #endif
