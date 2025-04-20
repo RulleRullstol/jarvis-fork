@@ -16,8 +16,7 @@ class UDPHandler {
 private:
   struct esp {
     string name;
-    string addr;
-    string port;
+    asio::ip::udp::endpoint endpoint;
     bool alive;
     int lastKeepAlive;
   };

@@ -1,6 +1,7 @@
 #include "globals.h"
 #include "openai/agent.h"
 #include "utils/lightHandler.h"
+#include "audio/audio.h"
 #include <iostream>
 #include <string>
 
@@ -9,6 +10,10 @@ using namespace std;
 CurlPost globalCP;
 
 int main() {
+  // ESP test 
+  UDPHandler udp;
+
+
   // System msg
   message sysMsg;
   sysMsg.role = "system";
