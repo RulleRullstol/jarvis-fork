@@ -130,7 +130,5 @@ Json::Value Agent::query(message msg) {
   // Stoppa in svar i history
   addHistory(resMsg);
 
-  cout << response << endl;
-
-  return jsonRes;
+  return structToJson(resMsg);
 }

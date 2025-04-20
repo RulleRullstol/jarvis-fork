@@ -30,8 +30,7 @@ int main() {
     Json::Value res = agent.query(usrMsg); // Only one call
 
     // Optional: handle or print response
-    string reply = agent.getResMessage(res).content;
-    cout << "Assistant: " << reply << endl;
+    cout << "Assistant: " << res["content"] << endl;
 
     // Add a break condition if you want to stop the loop, like:
     if (input == "exit")

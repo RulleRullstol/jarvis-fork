@@ -180,7 +180,7 @@ static string jsonToString(const Json::Value &json, bool pretty) {
     return Json::writeString(builder, json);
   } else {
     Json::StreamWriterBuilder builder;
-    builder["indentation"] = "";
+    builder["indentation"] = '\0';
     return Json::writeString(builder, json);
   }
 }

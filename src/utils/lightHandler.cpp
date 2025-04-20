@@ -46,7 +46,6 @@ array<bool, 3> validateList(LightRequest &lr, string &l) {
 }
 
 void setLights(vector<LightRequest> lrV) {
-  cout << lrV[0].id << endl;
   for (LightRequest lr : lrV) {
     string l = "";
     array<bool, 3> validation = validateList(lr, l);
@@ -75,21 +74,15 @@ void setLights(vector<LightRequest> lrV) {
       string url = ch.getHAUrl() + ch.getValue(l, "uri_on");
 
       string pl = jsonToString(payload, false);
-      cout << headers[0] << endl
-           << headers[1] << endl
-           << url << endl
-           << pl << endl;
 
       string debug = cp.post(url, headers, pl);
 
-      cout << debug << endl;
     } else {
       string url = ch.getHAUrl() + ch.getValue(l, "uri_off");
 
       string pl = jsonToString(payload, false);
 
       string debug = cp.post(url, headers, pl);
-      cout << debug << endl;
     }
   }
 
