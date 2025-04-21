@@ -22,8 +22,9 @@ private:
   struct esp {
     string name;
     asio::ip::udp::endpoint endpoint;
-    bool alive;
-    int lastKeepAlive;
+    string status;  // timeout, alive
+    int keepaliveLast;
+    int keepaliveInterval;
   };
   // Alla våra fina esps
   vector<esp> esps;
@@ -36,6 +37,7 @@ private:
 
   string getBroadcast();
   void setUpStream();
+  void keepAlive(esp &esp);
 
 public:
   UDPHandler();

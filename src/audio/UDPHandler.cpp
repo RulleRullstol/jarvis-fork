@@ -1,11 +1,10 @@
 #include "audio.h"
-#include <algorithm>
+#include <asio/socket_base.hpp>
 
 UDPHandler::UDPHandler() {
   ConfigHandler conf;
-  broadcastAddr = getBroadcast();
-  broadcastPort = conf.getValue("esp_general", "broadcastPort");
   // Populate esps vector
+  int broadcastPort = stoi(conf.getValue("esp_general", "broadcast_port"));
   int targetEsps = stoi(conf.getValue("esp_general", "count"));
   int maxRetries = targetEsps * stoi(conf.getValue("esp_general", "max_retries"));
   int retries = 0;
@@ -13,23 +12,29 @@ UDPHandler::UDPHandler() {
   string ackTemplate = conf.getValue("esp_general", "ack_msg");
 
   asio::ip::udp::resolver resolver(io_context);
-  // Sending endpoint
-  asio::ip::udp::endpoint broadCastEndpoint = *resolver.resolve(asio::ip::udp::v4(), broadcastAddr, broadcastPort);
   // Recieving endpoint
   asio::ip::udp::endpoint recvEndpoint;
-
+  
+  // Setup socket for recv. Listen to all ports on all interfaces
   asio::ip::udp::socket socket(io_context);
-  array<char, 256> recvBuffer; // 1024 is enough for ack 
+  socket.open(asio::ip::udp::v4());
+  socket.set_option(asio::socket_base::broadcast(true)); // allow broadcast
+  socket.set_option(asio::socket_base::reuse_address(true));
+  socket.bind(asio::ip::udp::endpoint(asio::ip::udp::v4(), broadcastPort)); // Bind to all ports on all interfaces
 
+  array<char, 256> recvBuffer; // 1024 is enough for ack 
+  
+  cout << "Listening for ESPs..." << endl;
   while (esps.size() != targetEsps) {
     // Listen for esps
     size_t len = socket.receive_from(asio::buffer(recvBuffer), recvEndpoint);
+    cout << "Packet recieved, parsing frame..." << endl;
     string recvMsg = string(recvBuffer.data(), len);
   
     // Ta bort msgTemplate och rengöra 
     int pos = recvMsg.find(msgTemplate);
     if (pos != string::npos) {
-      recvMsg.erase(pos, msgTemplate.length());
+      recvMsg.erase(pos, (msgTemplate.length()));
 
       // Hitta spaces och \0 runt en string och göra en substring utan dem 
       int start = 0;
@@ -42,26 +47,30 @@ UDPHandler::UDPHandler() {
       }
       recvMsg = recvMsg.substr(start, end - start);
       
-      // Skapa esp struct
+      // Populera esp struct om vi hittat esp
       int dividerPos = recvMsg.find(" "); // Hitta pos av divider mellan namn och port
       if (dividerPos != string::npos) {
         esp foundESP;
-        foundESP.name = recvMsg.substr(1, dividerPos); // Räkna med space mellan ord
+        foundESP.name = recvMsg.substr(0, dividerPos); // Räkna med space mellan ord
+        int espPort = stoi(recvMsg.substr(dividerPos, recvMsg.size())); // Port esp vill använda
         foundESP.endpoint = recvEndpoint;
-        esps.push_back(foundESP);
-        cout << "Found ESP: " << foundESP.name << endl;
+        cout << "Found: " << foundESP.name << " at: " << recvEndpoint.address() << endl;
 
-        // Skapa ack msg och skicka till esp
-        array<char, 256> ackMsg;
-        string tempStr = ackTemplate + " " + foundESP.name;
-        copy_n(tempStr.begin(), min(tempStr.size(), ackMsg.size() - 1), ackMsg.begin()); // in med skiten i array
-        ackMsg[min(tempStr.size(), ackMsg.size() -1)] = '\0'; // Null termiantor
-        
-
-        socket.send_to(asio::buffer(ackMsg.data(), strlen(ackMsg.data())), recvEndpoint);
+        // Handskade && keepalive
+        cout << "Attempting keepalive handshake..." << endl;
+        keepAlive(foundESP);
+        if (foundESP.status != "timeout") {
+          cout << "Keepalive handshake done.";
+          esps.push_back(foundESP);
+        } else {
+          cout << "Keepalive hanshake failed. Retrying..." << endl;
+        }
+        retries++; // Increment retries
       } else {
-        cout << "Recieved malformed response from ESP, retrying..." << endl;
+        cout << "Recieved malformed response from ESP..." << endl;
       }
+    } else {
+      cout << "Packet not from esp." << endl;
     }
 
     if (retries >= maxRetries && esps.size() != 0) {
@@ -69,6 +78,7 @@ UDPHandler::UDPHandler() {
       break;
     }
   }
+  cout << "Handshake completed with: " << esps.size() << "/" << targetEsps << " ESPs." << endl;
 }
 
 UDPHandler::~UDPHandler() {return;}
