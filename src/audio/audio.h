@@ -34,7 +34,7 @@ private:
   string broadcastAddr;
   string broadcastPort;
 
-  void keepAlive(esp esp);
+  void keepAlive(esp &esp);
 public:
   UDPHandler();
   ~UDPHandler();

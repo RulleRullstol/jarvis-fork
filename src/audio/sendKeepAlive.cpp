@@ -1,4 +1,5 @@
 #include "audio.h"
+#include <asio/io_context.hpp>
 #include <asio/socket_base.hpp>
 #include "../globals.h"
 #include <asio/steady_timer.hpp>
@@ -7,19 +8,19 @@
 // Sends a keepalive msg to the ESP and updates last_keepalive 
 // Returns True if ESP acknowledges request.
 // Return False if ESP does not acknowledge.
-void UDPHandler::keepAlive(esp esp) {
+void UDPHandler::keepAlive(esp &esp) {
   string keepaliveMsg = globalCH.getValue("esp_general", "keepalive_msg");
   string ackMsg = globalCH.getValue("esp_general", "ack_msg");
   string keepaliveInterval = globalCH.getValue("esp_general", "keepalive_interval");
   int maxRetries = stoi(globalCH.getValue("esp_general", "max_retries"));
   int retries = 0;
-
-  asio::steady_timer timer(io_context);
+  
+  asio::io_context ioctx;
+  asio::steady_timer timer(ioctx);
   globalCH.getValue("esp_general", "keepalive_msg");
-  asio::ip::udp::socket socket(io_context);
+  asio::ip::udp::socket socket(ioctx);
   socket.open(asio::ip::udp::v4());
-  socket.set_option(asio::socket_base::reuse_address(true));
-  socket.bind(esp.endpoint);
+  socket.bind(asio::ip::udp::endpoint(asio::ip::udp::v4(), esp.endpoint.port())); // TODO: keepalive meddelanden måste ske på sin egen port, annars ajjabajja
   
   // keepalive ESP_0 10 meddelande
   string msg = keepaliveMsg + " " + esp.name + " " + keepaliveInterval;
@@ -76,8 +77,13 @@ void UDPHandler::keepAlive(esp esp) {
       }
     });
 
-    io_context.run(); // Start sync funktioner. Blockar tills de är färdiga
-    io_context.reset(); // Preppa för att köra sync func igen
+    ioctx.run(); // Start sync funktioner. Blockar tills de är färdiga
+    ioctx.reset(); // Preppa för att köra sync func igen
     retries++;
   }
+  // Om vi inte fick svar
+  if (!ack) {
+    esp.status = "timeout";
+  }
+  return;
 }

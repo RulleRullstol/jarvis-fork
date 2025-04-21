@@ -1,7 +1,5 @@
 #include "audio.h"
-#include <algorithm>
 #include <asio/socket_base.hpp>
-#include <chrono>
 
 UDPHandler::UDPHandler() {
   ConfigHandler conf;
@@ -56,33 +54,17 @@ UDPHandler::UDPHandler() {
         foundESP.name = recvMsg.substr(0, dividerPos); // Räkna med space mellan ord
         int espPort = stoi(recvMsg.substr(dividerPos, recvMsg.size())); // Port esp vill använda
         foundESP.endpoint = recvEndpoint;
+        cout << "Found: " << foundESP.name << " at: " << recvEndpoint.address() << endl;
 
-        // Stoppa in om inte finns men skicka ack oavsett
-        if ([&]() {
-          for (const auto& esp : esps) {
-            if (esp.name == foundESP.name) {
-              cout << " Duplicate packet recieved from ESP: " << foundESP.name << ". Sending ACK again..." << endl;
-              return false;
-            }
-          }
-          return true;
-        }()) {
-          // Sätt korrekt port i endpoint
-          cout << "Found: " << foundESP.name << " at: " << recvEndpoint.address() << endl;
-          asio::ip::udp::endpoint transmitEndpoint(recvEndpoint.address(), recvEndpoint.port());
-          foundESP.alive = false;
-          foundESP.keepaliveLast = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count(); // Sekunder
-          foundESP.endpoint = transmitEndpoint;
+        // Handskade && keepalive
+        cout << "Attempting keepalive handshake..." << endl;
+        keepAlive(foundESP);
+        if (foundESP.status != "timeout") {
+          cout << "Keepalive handshake done.";
           esps.push_back(foundESP);
-        }  
-
-
-        // Skapa ack msg och skicka till esp
-        array<char, 256> ackMsg;
-        string tempStr = ackTemplate + " " + foundESP.name;
-        copy_n(tempStr.begin(), min(tempStr.size(), ackMsg.size() - 1), ackMsg.begin()); // in med skiten i array
-        socket.send_to(asio::buffer(ackMsg.data(), strlen(ackMsg.data())), recvEndpoint);
-        cout << "ACK sent to: " << foundESP.name << " at: " << recvEndpoint.address() << ":" << recvEndpoint.port() << endl;
+        } else {
+          cout << "Keepalive hanshake failed. Retrying..." << endl;
+        }
         retries++; // Increment retries
       } else {
         cout << "Recieved malformed response from ESP..." << endl;
