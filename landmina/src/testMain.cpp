@@ -35,6 +35,11 @@ const char *password = "123asdqwe";                 // WiFi Password
 //const char* ssid = "TN_wifi_D737B5_EXT";
 //const char* password = "LDMAEJJWDU";
 
+// UDP buffer settings
+const int UDP_BUFFER_SIZE = 2048;                   // UDP Buffer. buffer >= packet + audio buffer and multiple of buffer
+const int UDP_PACKET_SIZE = 1024;                   // Måste vara mindre än 1400 annars blir udp.write arg
+static uint8_t data[UDP_PACKET_SIZE];               // Data som plockas ut och skickas i udpSend
+
 // UDP settings
 WiFiUDP udp;
 int keepaliveInterval = 0;                         // Hur ofta vi förväntar oss keepalive
@@ -46,11 +51,19 @@ const String keepaliveMsg = "keepalive ";
 const String name = "ESP_0 ";                     // Broadcast port
 IPAddress remoteIP;                                 // Pi's IP address
 
-// UDP buffer settings
-const int UDP_BUFFER_SIZE = 2048;                   // UDP Buffer. buffer >= packet + audio buffer and multiple of buffer
-const int UDP_PACKET_SIZE = 1024;                   // Måste vara mindre än 1400 annars blir udp.write arg
-static uint8_t data[UDP_PACKET_SIZE];               // Data som plockas ut och skickas i udpSend
+// States
+enum State {
+    INIT,
+    AWAIT_ACK,
+    DONE
+};
+State currentState = INIT;
 
+/************************************************************************************************
+        Functions & Classes
+*************************************************************************************************/
+
+// Buffer där ljud bor
 class buffer {
     private:
         uint8_t buffer[UDP_BUFFER_SIZE];            // Storlek
@@ -104,8 +117,9 @@ class buffer {
             count -= UDP_PACKET_SIZE;
         }
     };
-buffer udpBuffer;                    // Static buffer for UDP data
+buffer udpBuffer;                    // Skapa buffer for UDP data
 
+// I2S Svammel
 void i2s_install() {
     // Set up I2S Processor configuration
     const i2s_config_t i2s_config = {
@@ -133,77 +147,15 @@ void i2s_setpin() {
     i2s_set_pin(I2S_PORT, &pin_config);
 }
 
-void broadcast(WiFiUDP &udp) {
-    char buffer[255];
-    String rcvdMsg;
-
-    Serial.println("Broadcasting to IP: " + WiFi.broadcastIP().toString());
-    udp.begin(broadcastPort);
-    delay(50);
-    while (true) {
-        Serial.println("Sending UDP broadcast...");
-        udp.beginPacket(WiFi.broadcastIP(), broadcastPort);
-        udp.write((uint8_t *)msg.c_str(), msg.length());
-        delay(1);
-        udp.endPacket();
-        delay(500); // Give time for response
-
-        int packetSize = udp.parsePacket(); // Greppa packet
-        Serial.printf("Packet Size Received: %d\n", packetSize);
-
-        if (packetSize) {
-            int readBytes = udp.read(buffer, sizeof(buffer) + 1);
-            if (readBytes > 0) {
-                buffer[readBytes] = '\0';
-                rcvdMsg = String(buffer);
-                rcvdMsg.trim(); // Bort med skumma grejer
-            }
-
-            Serial.println("Received message: " + rcvdMsg);
-
-            if (rcvdMsg == ackMsg) {
-                remoteIP = udp.remoteIP();
-                Serial.println("Acknowledgment received!");
-                delay(500);
-                udp.stop();
-                return;
-            }
-        } else {
-            Serial.println("Retrying..");
-        }
-    }
-}
-
-// Send audio data over UDP
-void udpSend(void* param) {
-    uint time = 0; // Debug
-    int supposedTime = (int)((float)UDP_PACKET_SIZE / SAMPLE_RATE * 1000 / 2); // Debug
-    while (true) {
-        if (udpBuffer.size() >= UDP_PACKET_SIZE) {
-            udpBuffer.retrieveAndShift(data); // Write directly into the static buffer
-            udp.beginPacket(remoteIP, remotePort);
-            udp.write(data, UDP_PACKET_SIZE);
-            udp.endPacket();
-            // Debug
-            Serial.printf("Sent packet of size: %d bytes, Time: %d ms, Target: %d ms\n", UDP_PACKET_SIZE, (millis() - time), supposedTime);
-            time = millis();
-        }
-        vTaskDelay(10 / portTICK_PERIOD_MS); // Yield
-    }
-}
-
 void setup() {
     Serial.begin(250000);
-    // Connect to WiFi
     Serial.println("Connecting to WiFi...");
     WiFi.begin(ssid, password);
     while (WiFi.status() != WL_CONNECTED) {
         delay(1000);
         Serial.println("Connecting...");
     }
-
     Serial.println("Connected to WiFi");
-    delay(1000);
 
     // Set up I2S for audio capture
     i2s_install();
@@ -215,35 +167,74 @@ void setup() {
     udp.begin(remotePort);  // Data port
     delay(100);             // Wait for UDP
     Serial.println("Sending data to: " + remoteIP.toString() + ":" + remotePort);
-
-    // Create FreeRTOS task for udpSend
-    xTaskCreatePinnedToCore(
-        udpSend,            // Function
-        "udpSend",          // Task name
-        4096,               // Stack size in words
-        nullptr,            // Task parameter
-        1,                  // Task priority
-        nullptr,            // Task handle
-        1                   // Core to run the task on (1 for APP core)
-    );
 }
 
-void loop() {
-    audioDataPtr = audioData; // Pilla tillbaka ptr till audioData element 0
-    size_t bytesRead = 0;       // Hur många bytes som lästs
-
-    // Read I2S data into the sBuffer
-    i2s_read(I2S_PORT, &sBuffer, sBufferSize, &bytesRead, portMAX_DELAY);
-
-    // Ny loop för samples av olika bit storlekar
-    for (size_t i = 0; i < bytesRead / BYTES_PER_SAMPLE; i++) {
-        for (short j = 0, shift = 0; j < (BYTES_PER_SAMPLE); j++, shift += 8) {
-            *audioDataPtr++ = (uint8_t)((sBuffer[i] >> shift) & 0x00FF); 
+// Skicka från buffer över UDP
+void udpSend(void* param) {
+    uint time = 0; // Debug
+    int supposedTime = (int)((float)UDP_PACKET_SIZE / SAMPLE_RATE * 1000 / 2); // Debug
+    while (currentState == DONE) {
+        if (udpBuffer.size() >= UDP_PACKET_SIZE) {
+            udpBuffer.retrieveAndShift(data); // Write directly into the static buffer
+            udp.beginPacket(remoteIP, remotePort);
+            udp.write(data, UDP_PACKET_SIZE);
+            udp.endPacket();
+            // Debug
+            Serial.printf("Sent packet of size: %d bytes, Time: %d ms, Target: %d ms\n", UDP_PACKET_SIZE, (millis() - time), supposedTime);
+            time = millis();
         }
+        vTaskDelay(10 / portTICK_PERIOD_MS); // Yield
     }
+    return;
+}
 
-    // Push data into udpBuffer and check for overflow
-    if (!udpBuffer.push(audioData, BUFFER_SIZE)) {
-        Serial.println("Buffer full, dropped samples...");
+/*********************************************************
+        State machine
+ *********************************************************/
+
+
+void loop() {
+    switch (currentState) {
+        case INIT:
+
+        case AWAIT_ACK:
+
+        case DONE:
+            // Start udpSend tråd
+            xTaskCreatePinnedToCore(
+                udpSend,            // Function
+                "udpSend",          // Task name
+                4096,               // Stack size in words
+                nullptr,            // Task parameter
+                1,                  // Task priority
+                nullptr,            // Task handle
+                1                   // Core to run the task on (1 for APP core)
+            );
+
+            // Samla in ljuddata
+            while (currentState == DONE) {
+                audioDataPtr = audioData; // Pilla tillbaka ptr till audioData element 0
+                size_t bytesRead = 0;       // Hur många bytes som lästs
+            
+                // Read I2S data into the sBuffer
+                i2s_read(I2S_PORT, &sBuffer, sBufferSize, &bytesRead, portMAX_DELAY);
+            
+                // Ny loop för samples av olika bit storlekar
+                for (size_t i = 0; i < bytesRead / BYTES_PER_SAMPLE; i++) {
+                    for (short j = 0, shift = 0; j < (BYTES_PER_SAMPLE); j++, shift += 8) {
+                        *audioDataPtr++ = (uint8_t)((sBuffer[i] >> shift) & 0x00FF); 
+                    }
+                }
+            
+                // Push data into udpBuffer and check for overflow
+                if (!udpBuffer.push(audioData, BUFFER_SIZE)) {
+                    Serial.println("Buffer full, dropped samples...");
+                }
+
+                // timeout?
+                if (keepaliveCounter >= (keepaliveInterval * 1.2)) {
+                    currentState = INIT;
+                }
+            }
     }
 }

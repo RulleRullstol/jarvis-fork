@@ -8,7 +8,7 @@ UDPHandler::UDPHandler() {
   int targetEsps = stoi(conf.getValue("esp_general", "count"));
   int maxRetries = targetEsps * stoi(conf.getValue("esp_general", "max_retries"));
   int retries = 0;
-  string msgTemplate = conf.getValue("esp_general", "broadcast_msg");
+  string msgIdentifer = conf.getValue("esp_general", "broadcast_msg");
   string ackTemplate = conf.getValue("esp_general", "ack_msg");
 
   asio::ip::udp::resolver resolver(io_context);
@@ -29,48 +29,33 @@ UDPHandler::UDPHandler() {
     // Listen for esps
     size_t len = socket.receive_from(asio::buffer(recvBuffer), recvEndpoint);
     cout << "Packet recieved, parsing frame..." << endl;
-    string recvMsg = string(recvBuffer.data(), len);
+    string rcvdMsg = string(recvBuffer.data(), len);
+    vector<string> rcvdWords = charsToWords(rcvdMsg);
   
-    // Ta bort msgTemplate och rengöra 
-    int pos = recvMsg.find(msgTemplate);
-    if (pos != string::npos) {
-      recvMsg.erase(pos, (msgTemplate.length()));
-
-      // Hitta spaces och \0 runt en string och göra en substring utan dem 
-      int start = 0;
-      int end = recvMsg.size();
-      while (start < end && (isspace(static_cast<unsigned char>(recvMsg[start])) || recvMsg[start] == '\0')) {
-        start++;
-      }
-      while (end > start && (isspace(static_cast<unsigned char>(recvMsg[end - 1])) || recvMsg[end - 1] == '\0')) {
-        end--;
-      }
-      recvMsg = recvMsg.substr(start, end - start);
+    // Parse msg
+    if (rcvdWords[0] == msgIdentifer) {
+      esp esp;
+      esp.name = rcvdWords[1];
+      esp.endpoint = asio::ip::udp::endpoint(asio::ip::make_address(recvEndpoint.address().to_string()), stoi(rcvdWords[2]));
+      esp.keepalivePort = stoi(rcvdWords[3]);
+      cout << "Found ESP: " << esp.name << " at: " << esp.endpoint.address() << endl;
       
-      // Populera esp struct om vi hittat esp
-      int dividerPos = recvMsg.find(" "); // Hitta pos av divider mellan namn och port
-      if (dividerPos != string::npos) {
-        esp foundESP;
-        foundESP.name = recvMsg.substr(0, dividerPos); // Räkna med space mellan ord
-        int espPort = stoi(recvMsg.substr(dividerPos, recvMsg.size())); // Port esp vill använda
-        foundESP.endpoint = recvEndpoint;
-        cout << "Found: " << foundESP.name << " at: " << recvEndpoint.address() << endl;
-
-        // Handskade && keepalive
-        cout << "Attempting keepalive handshake..." << endl;
-        keepAlive(foundESP);
-        if (foundESP.status != "timeout") {
-          cout << "Keepalive handshake done.";
-          esps.push_back(foundESP);
-        } else {
-          cout << "Keepalive hanshake failed. Retrying..." << endl;
-        }
-        retries++; // Increment retries
-      } else {
-        cout << "Recieved malformed response from ESP..." << endl;
+      // Handshake & stoppa in i vector om ESP svarar & vi inte redan pratar med espn
+      keepAlive(esp);
+      if (esp.status == "alive" && [&]() {
+          for (auto& savedEsp : esps) {
+            if (savedEsp.name == esp.name) {
+                  cout << "Error: ESP: " << esp.name << " already parsed..." << endl;
+                  return false;
+            }
+          }
+        return true;
+      }()) {
+        cout << "Keepalive handshake successfull." << endl;
+        esps.push_back(esp);
       }
     } else {
-      cout << "Packet not from esp." << endl;
+      cout << "Packet missing identifier." << endl;
     }
 
     if (retries >= maxRetries && esps.size() != 0) {

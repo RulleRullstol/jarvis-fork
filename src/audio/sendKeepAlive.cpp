@@ -20,42 +20,34 @@ void UDPHandler::keepAlive(esp &esp) {
   globalCH.getValue("esp_general", "keepalive_msg");
   asio::ip::udp::socket socket(ioctx);
   socket.open(asio::ip::udp::v4());
-  socket.bind(asio::ip::udp::endpoint(asio::ip::udp::v4(), esp.endpoint.port())); // TODO: keepalive meddelanden måste ske på sin egen port, annars ajjabajja
-  
+  socket.bind(asio::ip::udp::endpoint(asio::ip::udp::v4(), esp.keepalivePort));
+  asio::ip::udp::endpoint espEndpoint(asio::ip::make_address(esp.endpoint.address().to_string()), esp.keepalivePort);
+ 
   // keepalive ESP_0 10 meddelande
   string msg = keepaliveMsg + " " + esp.name + " " + keepaliveInterval;
-  vector<string> msgWords;
-  string word;
-  istringstream iss(msg);
-  while (iss >> word) {
-    msgWords.push_back(word);
-  }
+  vector<string> msgWords = charsToWords(msg);
 
   array<char, 256> buffer;
   copy_n(msg.begin(), min(msg.size(), ackMsg.size() - 1), msg.begin());
 
   // Send keepalive to ESP
+  cout << "Sending keepalive frame to: " << esp.name << " at: " << esp.endpoint.address() << ":" << esp.keepalivePort << endl;
   bool ack = false; // Om vi fått tbks en ack
   while (maxRetries >= retries  && !ack) {
-    cout << "Sentkeepalive frame to: " << esp.name << endl;
-    socket.send_to(asio::buffer(buffer.data(), strlen(buffer.data())), esp.endpoint);
+    cout << "Sent keepalive frame to: " << esp.name << endl;
+    socket.send_to(asio::buffer(buffer.data(), strlen(buffer.data())), espEndpoint);
 
     // Wait for response
     cout << "Awaiting keepalive ACK from: " << esp.name << endl;
     array<char, 1024> recvBuffer;
-
+  
     // Start recive
-    socket.async_receive_from(asio::buffer(recvBuffer), esp.endpoint, [&](error_code ec, size_t bytesRecvd) {
+    socket.async_receive_from(asio::buffer(recvBuffer), espEndpoint, [&](error_code ec, size_t bytesRecvd) {
       if (!ec) {
         // Kolla om svar korrekt
         string recvMsg = string(recvBuffer.data(), bytesRecvd);
-        // Gör om rcvdMsg till vector av ord
-        vector<string> rcvdWords;
-        string word;
-        istringstream iss(recvMsg);
-        while (iss >> word) {
-          rcvdWords.push_back(word);
-        }
+        vector<string> rcvdWords = charsToWords(recvMsg);
+
         // Jämför
         if (rcvdWords == msgWords) {
           cout << "Recieved keepalive ACK from: " << esp.name << endl;

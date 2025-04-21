@@ -23,6 +23,7 @@ private:
     string name;
     asio::ip::udp::endpoint endpoint;
     string status;  // timeout, alive
+    int keepalivePort;
     int keepaliveLast;
     int keepaliveInterval;
   };
@@ -33,7 +34,8 @@ private:
 
   string broadcastAddr;
   string broadcastPort;
-
+  
+  vector<string> charsToWords(string &chars);
   void keepAlive(esp &esp);
 public:
   UDPHandler();
