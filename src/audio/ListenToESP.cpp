@@ -2,6 +2,7 @@
 #include "audio.h"
 #include <asio/io_context.hpp>
 #include <cstdint>
+#include <thread>
 
 void UDPHandler::listenToESP(unsigned short port, deque<int16_t> &buffer) {
   asio::io_context ioContext;
@@ -19,5 +20,13 @@ void UDPHandler::listenToESP(unsigned short port, deque<int16_t> &buffer) {
 
       buffer.insert(buffer.end(), samples, samples + sampleCount);
     }
+  }
+}
+
+void UDPHandler::setUpStream() {
+  for (int i = 0; i < esps.size(); i++) {
+    int port = esps[i].endpoint.port();
+    deque<int16_t> buffer = buffers[i];
+    thread([port, &buffer, this]() {listenToESP(port, buffer); }).detach();
   }
 }

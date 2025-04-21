@@ -29,6 +29,7 @@ private:
   };
   // Alla våra fina esps
   vector<esp> esps;
+  vector<deque<int16_t>> buffers;
 
   asio::io_context io_context;
 
@@ -36,10 +37,14 @@ private:
   string broadcastPort;
   
   vector<string> charsToWords(string &chars);
+
+  string getBroadcast();
+  void setUpStream();
   void keepAlive(esp &esp);
+
 public:
   UDPHandler();
   ~UDPHandler();
-  void listenToESP(unsigned short port, deque<int16_t> &buffer); 
-};
+  void listenToESP(unsigned short port, deque<int16_t> &buffer);
+  };
 #endif
