@@ -1,6 +1,7 @@
 #include "audio.h"
 #include <algorithm>
 #include <asio/socket_base.hpp>
+#include <chrono>
 
 UDPHandler::UDPHandler() {
   ConfigHandler conf;
@@ -29,7 +30,7 @@ UDPHandler::UDPHandler() {
   while (esps.size() != targetEsps) {
     // Listen for esps
     size_t len = socket.receive_from(asio::buffer(recvBuffer), recvEndpoint);
-    cout << "Packet recieved, parsing..." << endl;
+    cout << "Packet recieved, parsing frame..." << endl;
     string recvMsg = string(recvBuffer.data(), len);
   
     // Ta bort msgTemplate och rengöra 
@@ -53,20 +54,28 @@ UDPHandler::UDPHandler() {
       if (dividerPos != string::npos) {
         esp foundESP;
         foundESP.name = recvMsg.substr(0, dividerPos); // Räkna med space mellan ord
+        int espPort = stoi(recvMsg.substr(dividerPos, recvMsg.size())); // Port esp vill använda
         foundESP.endpoint = recvEndpoint;
 
-        // Stoppa in om inte finns
+        // Stoppa in om inte finns men skicka ack oavsett
         if ([&]() {
           for (const auto& esp : esps) {
-            if (esp.name == foundESP.name)
-              return true;
+            if (esp.name == foundESP.name) {
+              cout << " Duplicate packet recieved from ESP: " << foundESP.name << ". Sending ACK again..." << endl;
+              return false;
+            }
           }
-          return false;
+          return true;
         }()) {
+          // Sätt korrekt port i endpoint
+          cout << "Found: " << foundESP.name << " at: " << recvEndpoint.address() << endl;
+          asio::ip::udp::endpoint transmitEndpoint(recvEndpoint.address(), recvEndpoint.port());
+          foundESP.alive = false;
+          foundESP.keepaliveLast = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count(); // Sekunder
+          foundESP.endpoint = transmitEndpoint;
           esps.push_back(foundESP);
         }  
 
-        cout << "Found: " << foundESP.name << " at: " << recvEndpoint.address() << endl;
 
         // Skapa ack msg och skicka till esp
         array<char, 256> ackMsg;
@@ -76,16 +85,18 @@ UDPHandler::UDPHandler() {
         cout << "ACK sent to: " << foundESP.name << " at: " << recvEndpoint.address() << ":" << recvEndpoint.port() << endl;
         retries++; // Increment retries
       } else {
-        cout << "Recieved malformed response from ESP, retrying..." << endl;
+        cout << "Recieved malformed response from ESP..." << endl;
       }
+    } else {
+      cout << "Packet not from esp." << endl;
     }
-    cout << "Packet not from esp";
 
     if (retries >= maxRetries && esps.size() != 0) {
       cerr << "Max retries reached looking for ESPS on: " << broadcastAddr << ":" << broadcastPort << endl;
       break;
     }
   }
+  cout << "Handshake completed with: " << esps.size() << "/" << targetEsps << " ESPs." << endl;
 }
 
 UDPHandler::~UDPHandler() {return;}
